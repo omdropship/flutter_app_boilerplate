@@ -12,35 +12,41 @@ dependencies:
 
   # State Management
   flutter_bloc: ^9.1.1
-  bloc: ^9.0.0
+  bloc: ^9.1.0
 
   # Dependency Injection
-  get_it: ^8.0.3
+  get_it: ^9.2.0
 
   # Routing
-  auto_route: ^9.4.0
+  auto_route: ^11.1.0
 
   # Network
-  dio: ^5.8.0
+  dio: ^5.9.0
 
   # Cache
-  shared_preferences: ^2.5.3
+  shared_preferences: ^2.5.4
+
+  # Offline-First / Local Database
+  hive_ce: ^2.10.1
+  hive_ce_flutter: ^2.2.0
+  connectivity_plus: ^6.1.1
+  uuid: ^4.5.1
 
   # Functional Programming (Either pattern)
   dartz: ^0.10.1
 
   # Code Generation
-  freezed_annotation: ^3.0.0
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
   # Localization
-  easy_localization: ^3.0.7+1
+  easy_localization: ^3.0.8
 
   # UI
-  google_fonts: ^6.2.1
+  google_fonts: ^6.3.3
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
-  flutter_svg: ^2.0.17
+  flutter_svg: ^2.2.3
 
   # Utils
   equatable: ^2.0.7
@@ -50,17 +56,18 @@ dev_dependencies:
     sdk: flutter
 
   # Code Generation
-  build_runner: ^2.4.15
-  freezed: ^3.0.0
+  build_runner: ^2.10.4
+  freezed: ^3.2.3
   json_serializable: ^6.9.4
-  auto_route_generator: ^9.0.0
+  auto_route_generator: ^10.4.0
+  hive_ce_generator: ^1.8.0
 
   # Testing
   mocktail: ^1.0.4
   bloc_test: ^10.0.0
 
   # Linting
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
