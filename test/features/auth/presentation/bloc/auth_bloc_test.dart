@@ -3,11 +3,10 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app_boilerplate/core/error/failures.dart';
-import 'package:flutter_app_boilerplate/features/auth/domain/usecases/get_current_user.dart';
 import 'package:flutter_app_boilerplate/features/auth/domain/usecases/login_user.dart';
-import 'package:flutter_app_boilerplate/features/auth/domain/usecases/logout_user.dart';
-import 'package:flutter_app_boilerplate/features/auth/domain/usecases/register_user.dart';
 import 'package:flutter_app_boilerplate/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_app_boilerplate/features/auth/presentation/bloc/auth_event.dart';
+import 'package:flutter_app_boilerplate/features/auth/presentation/bloc/auth_state.dart';
 
 import '../../../../mocks/mocks.dart';
 import '../../../../helpers/test_helpers.dart';
@@ -47,24 +46,24 @@ void main() {
     expect(bloc.state, equals(const AuthInitial()));
   });
 
-  group('LoginRequested', () {
+  group('LoginEvent', () {
     const tEmail = 'test@example.com';
     const tPassword = 'password123';
 
     blocTest<AuthBloc, AuthState>(
-      'emits [AuthLoading, AuthAuthenticated] when login succeeds',
+      'emits [AuthLoading, Authenticated] when login succeeds',
       build: () {
         when(() => mockLoginUser(any()))
             .thenAnswer((_) async => Right(tUser));
         return bloc;
       },
-      act: (bloc) => bloc.add(const LoginRequested(
+      act: (bloc) => bloc.add(const LoginEvent(
         email: tEmail,
         password: tPassword,
       )),
       expect: () => [
         const AuthLoading(),
-        AuthAuthenticated(tUser),
+        Authenticated(tUser),
       ],
       verify: (_) {
         verify(() => mockLoginUser(const LoginParams(
@@ -78,10 +77,10 @@ void main() {
       'emits [AuthLoading, AuthError] when login fails',
       build: () {
         when(() => mockLoginUser(any()))
-            .thenAnswer((_) async => const Left(ServerFailure('Invalid credentials')));
+            .thenAnswer((_) async => const Left(ServerFailure(message: 'Invalid credentials')));
         return bloc;
       },
-      act: (bloc) => bloc.add(const LoginRequested(
+      act: (bloc) => bloc.add(const LoginEvent(
         email: tEmail,
         password: tPassword,
       )),
@@ -92,15 +91,15 @@ void main() {
     );
   });
 
-  group('LogoutRequested', () {
+  group('LogoutEvent', () {
     blocTest<AuthBloc, AuthState>(
       'emits [AuthLoading, AuthInitial] when logout succeeds',
       build: () {
         when(() => mockLogoutUser(any()))
-            .thenAnswer((_) async => const Right(null));
+            .thenAnswer((_) async => const Right(unit));
         return bloc;
       },
-      act: (bloc) => bloc.add(const LogoutRequested()),
+      act: (bloc) => bloc.add(const LogoutEvent()),
       expect: () => [
         const AuthLoading(),
         const AuthInitial(),
@@ -108,32 +107,32 @@ void main() {
     );
   });
 
-  group('CheckAuthStatus', () {
+  group('CheckAuthStatusEvent', () {
     blocTest<AuthBloc, AuthState>(
-      'emits [AuthLoading, AuthAuthenticated] when user is logged in',
+      'emits [AuthLoading, Authenticated] when user is logged in',
       build: () {
         when(() => mockGetCurrentUser(any()))
             .thenAnswer((_) async => Right(tUser));
         return bloc;
       },
-      act: (bloc) => bloc.add(const CheckAuthStatus()),
+      act: (bloc) => bloc.add(const CheckAuthStatusEvent()),
       expect: () => [
         const AuthLoading(),
-        AuthAuthenticated(tUser),
+        Authenticated(tUser),
       ],
     );
 
     blocTest<AuthBloc, AuthState>(
-      'emits [AuthLoading, AuthUnauthenticated] when user is not logged in',
+      'emits [AuthLoading, Unauthenticated] when user is not logged in',
       build: () {
         when(() => mockGetCurrentUser(any()))
-            .thenAnswer((_) async => const Left(CacheFailure('No user found')));
+            .thenAnswer((_) async => const Left(CacheFailure(message: 'No user found')));
         return bloc;
       },
-      act: (bloc) => bloc.add(const CheckAuthStatus()),
+      act: (bloc) => bloc.add(const CheckAuthStatusEvent()),
       expect: () => [
         const AuthLoading(),
-        const AuthUnauthenticated(),
+        const Unauthenticated(),
       ],
     );
   });

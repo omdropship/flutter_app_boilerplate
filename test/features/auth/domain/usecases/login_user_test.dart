@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app_boilerplate/core/error/failures.dart';
 import 'package:flutter_app_boilerplate/features/auth/domain/entities/user.dart';
-import 'package:flutter_app_boilerplate/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_app_boilerplate/features/auth/domain/usecases/login_user.dart';
 
 import '../../../../mocks/mocks.dart';
@@ -34,13 +33,13 @@ void main() {
       when(() => mockRepository.login(
             email: any(named: 'email'),
             password: any(named: 'password'),
-          )).thenAnswer((_) async => Right(tUser));
+          )).thenAnswer((_) async => Right<Failure, User>(tUser));
 
       // Act
       final result = await usecase(tParams);
 
       // Assert
-      expect(result, Right(tUser));
+      expect(result, equals(Right<Failure, User>(tUser)));
       verify(() => mockRepository.login(
             email: tParams.email,
             password: tParams.password,
@@ -53,13 +52,13 @@ void main() {
       when(() => mockRepository.login(
             email: any(named: 'email'),
             password: any(named: 'password'),
-          )).thenAnswer((_) async => const Left(ServerFailure('Login failed')));
+          )).thenAnswer((_) async => const Left<Failure, User>(ServerFailure(message: 'Login failed')));
 
       // Act
       final result = await usecase(tParams);
 
       // Assert
-      expect(result, const Left(ServerFailure('Login failed')));
+      expect(result, const Left<Failure, User>(ServerFailure(message: 'Login failed')));
       verify(() => mockRepository.login(
             email: tParams.email,
             password: tParams.password,
@@ -72,13 +71,13 @@ void main() {
             email: any(named: 'email'),
             password: any(named: 'password'),
           )).thenAnswer(
-              (_) async => const Left(NetworkFailure('No internet connection')));
+              (_) async => const Left<Failure, User>(NetworkFailure(message: 'No internet connection')));
 
       // Act
       final result = await usecase(tParams);
 
       // Assert
-      expect(result, const Left(NetworkFailure('No internet connection')));
+      expect(result, const Left<Failure, User>(NetworkFailure(message: 'No internet connection')));
     });
   });
 }
