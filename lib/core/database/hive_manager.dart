@@ -75,8 +75,8 @@ class HiveManager {
     await Future.wait([
       Hive.openBox<SyncOperation>(HiveBoxes.syncQueue),
       Hive.openBox<SyncMetadata>(HiveBoxes.syncMetadata),
-      Hive.openBox(HiveBoxes.settings),
-      Hive.openBox(HiveBoxes.cache),
+      Hive.openBox<dynamic>(HiveBoxes.settings),
+      Hive.openBox<dynamic>(HiveBoxes.cache),
     ]);
   }
 
@@ -135,7 +135,7 @@ class HiveManager {
     _ensureInitialized();
     for (final boxName in HiveBoxes.allBoxes) {
       if (Hive.isBoxOpen(boxName)) {
-        await Hive.box(boxName).clear();
+        await Hive.box<dynamic>(boxName).clear();
       }
     }
 
@@ -148,7 +148,7 @@ class HiveManager {
   Future<void> clearBox(String boxName) async {
     _ensureInitialized();
     if (Hive.isBoxOpen(boxName)) {
-      await Hive.box(boxName).clear();
+      await Hive.box<dynamic>(boxName).clear();
     }
   }
 
@@ -165,7 +165,7 @@ class HiveManager {
   /// Delete a box from disk completely
   Future<void> deleteBox(String boxName) async {
     if (Hive.isBoxOpen(boxName)) {
-      await Hive.box(boxName).deleteFromDisk();
+      await Hive.box<dynamic>(boxName).deleteFromDisk();
     } else {
       await Hive.deleteBoxFromDisk(boxName);
     }
@@ -174,12 +174,9 @@ class HiveManager {
   /// Compact a box to reduce file size
   Future<void> compactBox(String boxName) async {
     if (Hive.isBoxOpen(boxName)) {
-      await Hive.box(boxName).compact();
+      await Hive.box<dynamic>(boxName).compact();
     }
   }
-
-  /// Get the path where Hive stores data
-  String? get hivePath => Hive.defaultDirectory?.path;
 
   void _ensureInitialized() {
     if (!_isInitialized) {

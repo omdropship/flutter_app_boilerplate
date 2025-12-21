@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce/hive.dart';
 
-import '../database/hive_boxes.dart';
 import '../database/hive_manager.dart';
 import '../network/dio_client.dart';
 import 'sync_operation.dart';
@@ -151,7 +150,7 @@ class SyncQueue {
   /// Process all pending operations in the queue
   Future<SyncResult> processQueue() async {
     if (_isProcessing) {
-      return SyncResult(
+      return const SyncResult(
         processed: 0,
         succeeded: 0,
         failed: 0,
@@ -200,7 +199,7 @@ class SyncQueue {
     operation.markInProgress();
 
     try {
-      Response response;
+      Response<dynamic> response;
 
       switch (operation.operationType) {
         case SyncOperationType.create:

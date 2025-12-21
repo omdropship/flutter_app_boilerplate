@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../offline/connectivity_cubit.dart';
-import '../offline/sync_status.dart';
 
 /// A banner that shows when the device is offline.
 ///
@@ -57,7 +56,7 @@ class OfflineBanner extends StatelessWidget {
                       Text(
                         '${state.pendingOperations} pending operations',
                         style: TextStyle(
-                          color: _getTextColor(context, state).withOpacity(0.7),
+                          color: _getTextColor(context, state).withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),

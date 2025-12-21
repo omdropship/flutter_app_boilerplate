@@ -139,12 +139,16 @@ class DioClient {
     }
   }
 
-  String _extractErrorMessage(Response? response) {
+  String _extractErrorMessage(Response<dynamic>? response) {
     if (response?.data == null) return 'Server error';
     try {
       final data = response!.data;
-      if (data is Map) {
-        return data['message'] ?? data['error'] ?? 'Server error';
+      if (data is Map<String, dynamic>) {
+        final message = data['message'];
+        final error = data['error'];
+        if (message is String) return message;
+        if (error is String) return error;
+        return 'Server error';
       }
       return 'Server error';
     } catch (_) {
@@ -167,7 +171,7 @@ class _LoggingInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
     debugPrint('┌────────────────────────────────────────────────');
     debugPrint('│ ✅ RESPONSE: ${response.statusCode}');
     debugPrint('│ Data: ${response.data}');

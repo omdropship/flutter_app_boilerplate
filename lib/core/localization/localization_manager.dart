@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
@@ -78,7 +78,7 @@ class LocalizationManager {
 
   /// Check if locale is RTL
   bool isRTL(BuildContext context) {
-    return Directionality.of(context) == TextDirection.rtl;
+    return Directionality.of(context) == ui.TextDirection.rtl;
   }
 
   /// Get language name in current locale

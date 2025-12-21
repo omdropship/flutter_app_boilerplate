@@ -38,7 +38,7 @@ extension ContextExtensions on BuildContext {
 
   // Loading dialog
   void showLoadingDialog() {
-    showDialog(
+    showDialog<void>(
       context: this,
       barrierDismissible: false,
       builder: (context) => const Center(

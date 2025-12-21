@@ -80,7 +80,7 @@ final class DarkTheme extends AppTheme {
         ),
 
         // Card
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 0,
           color: _colors.cardBackground,
           shape: RoundedRectangleBorder(
@@ -167,7 +167,7 @@ final class DarkTheme extends AppTheme {
         ),
 
         // Dialog
-        dialogTheme: DialogTheme(
+        dialogTheme: DialogThemeData(
           backgroundColor: _colors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

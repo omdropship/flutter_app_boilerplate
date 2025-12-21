@@ -180,6 +180,7 @@ class SyncMetadata extends HiveObject {
   }
 
   /// Unique key for storing metadata
+  @override
   String get key => '$entityType:$entityId';
 
   /// Check if entity needs sync

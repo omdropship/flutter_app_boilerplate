@@ -34,7 +34,7 @@ enum SupportedLocale {
   /// Get display name with flag
   String get displayName => '$flag $nativeName';
 
-  /// Get all supported locales as List<Locale>
+  /// Get all supported locales as `List<Locale>`
   static List<Locale> get locales =>
       SupportedLocale.values.map((e) => e.locale).toList();
 

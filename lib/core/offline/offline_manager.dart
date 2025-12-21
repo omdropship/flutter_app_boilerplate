@@ -41,7 +41,6 @@ class OfflineManager {
   final _statusController = StreamController<OfflineStatus>.broadcast();
 
   bool _isInitialized = false;
-  bool _autoSyncEnabled = true;
 
   /// Stream of offline status changes
   Stream<OfflineStatus> get onStatusChanged => _statusController.stream;
@@ -53,13 +52,8 @@ class OfflineManager {
         isSyncing: _syncQueue.isProcessing,
       );
 
-  /// Whether auto-sync is enabled
-  bool get autoSyncEnabled => _autoSyncEnabled;
-
-  /// Set auto-sync behavior
-  set autoSyncEnabled(bool value) {
-    _autoSyncEnabled = value;
-  }
+  /// Whether auto-sync is enabled. Set this directly to enable/disable auto-sync.
+  bool autoSyncEnabled = true;
 
   /// Quick check if online
   bool get isOnline => _connectivityService.isOnline;
@@ -93,7 +87,7 @@ class OfflineManager {
 
   /// Handle connectivity status changes
   Future<void> _handleConnectivityChange(ConnectivityStatus status) async {
-    if (status == ConnectivityStatus.online && _autoSyncEnabled) {
+    if (status == ConnectivityStatus.online && autoSyncEnabled) {
       // Device came back online - process queue
       await processQueue();
     }
@@ -123,7 +117,7 @@ class OfflineManager {
   /// Process the sync queue
   Future<SyncResult> processQueue() async {
     if (!_connectivityService.isOnline) {
-      return SyncResult(
+      return const SyncResult(
         processed: 0,
         succeeded: 0,
         failed: 0,
@@ -132,7 +126,7 @@ class OfflineManager {
     }
 
     if (_syncQueue.pendingCount == 0) {
-      return SyncResult(
+      return const SyncResult(
         processed: 0,
         succeeded: 0,
         failed: 0,
@@ -190,7 +184,7 @@ class OfflineManager {
   /// Retry all failed operations
   Future<void> retryFailed() async {
     await _syncQueue.retryAllFailed();
-    if (_autoSyncEnabled && _connectivityService.isOnline) {
+    if (autoSyncEnabled && _connectivityService.isOnline) {
       await processQueue();
     }
   }
