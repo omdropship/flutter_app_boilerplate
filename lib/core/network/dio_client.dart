@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
 import '../constants/api_constants.dart';
 import '../error/exceptions.dart';
 

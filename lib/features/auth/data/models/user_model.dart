@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../core/cache/cacheable_base_model.dart';
 import '../../domain/entities/user.dart';
 

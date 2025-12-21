@@ -1,15 +1,15 @@
 import 'package:get_it/get_it.dart';
-import 'core/cache/cache_manager.dart';
-import 'core/network/dio_client.dart';
-import 'core/navigation/navigation_manager.dart';
-import 'core/localization/localization_manager.dart';
-import 'core/database/hive_manager.dart';
-import 'core/offline/connectivity_service.dart';
-import 'core/offline/sync_queue.dart';
-import 'core/offline/offline_manager.dart';
-import 'core/offline/connectivity_cubit.dart';
-import 'config/routes/app_router.dart';
 
+import 'config/routes/app_router.dart';
+import 'core/cache/cache_manager.dart';
+import 'core/database/hive_manager.dart';
+import 'core/localization/localization_manager.dart';
+import 'core/navigation/navigation_manager.dart';
+import 'core/network/dio_client.dart';
+import 'core/offline/connectivity_cubit.dart';
+import 'core/offline/connectivity_service.dart';
+import 'core/offline/offline_manager.dart';
+import 'core/offline/sync_queue.dart';
 // Features
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -20,8 +20,8 @@ import 'features/auth/domain/usecases/login_user.dart';
 import 'features/auth/domain/usecases/logout_user.dart';
 import 'features/auth/domain/usecases/register_user.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/settings/presentation/bloc/theme_cubit.dart';
 import 'features/settings/presentation/bloc/locale_cubit.dart';
+import 'features/settings/presentation/bloc/theme_cubit.dart';
 
 final sl = GetIt.instance;
 

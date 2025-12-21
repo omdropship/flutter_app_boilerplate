@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -132,8 +133,7 @@ class HomePage extends StatelessWidget {
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        context.colorScheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: context.colorScheme.primary.withValues(alpha: 0.1),
                     child: Icon(
                       Icons.access_time,
                       color: context.colorScheme.primary,

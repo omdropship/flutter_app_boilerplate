@@ -1,14 +1,15 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
+
 import 'config/routes/app_router.dart';
-import 'core/theme/light/light_theme.dart';
-import 'core/theme/dark/dark_theme.dart';
 import 'core/offline/connectivity_cubit.dart';
+import 'core/theme/dark/dark_theme.dart';
+import 'core/theme/light/light_theme.dart';
 import 'core/widgets/offline_indicator.dart';
-import 'features/settings/presentation/bloc/theme_cubit.dart';
-import 'features/settings/presentation/bloc/locale_cubit.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/settings/presentation/bloc/locale_cubit.dart';
+import 'features/settings/presentation/bloc/theme_cubit.dart';
 import 'injection_container.dart';
 
 class App extends StatelessWidget {

@@ -1,8 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import '../../../../core/cache/cache_manager.dart';
+
 import '../../../../core/cache/cache_keys.dart';
+import '../../../../core/cache/cache_manager.dart';
 
 class ThemeState extends Equatable {
   final ThemeMode themeMode;
