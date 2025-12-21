@@ -3,6 +3,11 @@ import 'core/cache/cache_manager.dart';
 import 'core/network/dio_client.dart';
 import 'core/navigation/navigation_manager.dart';
 import 'core/localization/localization_manager.dart';
+import 'core/database/hive_manager.dart';
+import 'core/offline/connectivity_service.dart';
+import 'core/offline/sync_queue.dart';
+import 'core/offline/offline_manager.dart';
+import 'core/offline/connectivity_cubit.dart';
 import 'config/routes/app_router.dart';
 
 // Features
@@ -31,10 +36,35 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
   //==============================
+  // OFFLINE-FIRST
+  //==============================
+  await _initOfflineFirst();
+
+  //==============================
   // FEATURES
   //==============================
   await _initAuthFeature();
   await _initSettingsFeature();
+}
+
+Future<void> _initOfflineFirst() async {
+  // Database
+  sl.registerLazySingleton<HiveManager>(() => HiveManager.instance);
+
+  // Connectivity
+  sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService.instance);
+
+  // Sync Queue
+  sl.registerLazySingleton<SyncQueue>(() => SyncQueue.instance);
+
+  // Offline Manager (orchestrates everything)
+  sl.registerLazySingleton<OfflineManager>(() => OfflineManager.instance);
+
+  // Initialize the offline manager (initializes Hive and connectivity)
+  await sl<OfflineManager>().init();
+
+  // Connectivity Cubit for UI
+  sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl())..init());
 }
 
 Future<void> _initAuthFeature() async {

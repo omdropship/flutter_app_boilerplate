@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'config/routes/app_router.dart';
 import 'core/theme/light/light_theme.dart';
 import 'core/theme/dark/dark_theme.dart';
+import 'core/offline/connectivity_cubit.dart';
+import 'core/widgets/offline_indicator.dart';
 import 'features/settings/presentation/bloc/theme_cubit.dart';
 import 'features/settings/presentation/bloc/locale_cubit.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -19,23 +21,26 @@ class App extends StatelessWidget {
         BlocProvider<ThemeCubit>(create: (_) => sl<ThemeCubit>()),
         BlocProvider<LocaleCubit>(create: (_) => sl<LocaleCubit>()),
         BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
+        BlocProvider<ConnectivityCubit>(create: (_) => sl<ConnectivityCubit>()),
         // Add more global BLoCs here
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
-          return MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'Flutter Boilerplate',
-            // Localization
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            // Theme
-            theme: LightTheme.instance.theme,
-            darkTheme: DarkTheme.instance.theme,
-            themeMode: themeState.themeMode,
-            // Routing
-            routerConfig: sl<AppRouter>().config(),
+          return ConnectivityListener(
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              title: 'Flutter Boilerplate',
+              // Localization
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              // Theme
+              theme: LightTheme.instance.theme,
+              darkTheme: DarkTheme.instance.theme,
+              themeMode: themeState.themeMode,
+              // Routing
+              routerConfig: sl<AppRouter>().config(),
+            ),
           );
         },
       ),
