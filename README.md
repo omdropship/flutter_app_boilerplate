@@ -28,6 +28,7 @@ Production-ready Flutter boilerplate with Clean Architecture, BLoC state managem
   - [Localization (Multi-language)](#5-localization-multi-language)
   - [Navigation](#6-navigation)
   - [Widgets](#7-reusable-widgets)
+  - [Offline-First Architecture](#8-offline-first-architecture)
 - [Features](#features)
   - [Auth Feature (Example)](#auth-feature-example)
   - [Other Features](#other-features)
@@ -72,6 +73,8 @@ Production-ready Flutter boilerplate with Clean Architecture, BLoC state managem
 | Routing | Auto Route | Type-safe navigation |
 | HTTP Client | Dio | API requests with interceptors |
 | Local Storage | SharedPreferences | Key-value cache |
+| **Offline Database** | **Hive CE** | **Offline-first data persistence** |
+| **Connectivity** | **Connectivity Plus** | **Network status monitoring** |
 | Localization | Easy Localization | Multi-language support |
 | Code Generation | Freezed, JSON Serializable | Immutable models |
 
@@ -278,12 +281,25 @@ lib/core/
 ├── usecases/                 # Base UseCase
 │   └── usecase.dart
 │
+├── database/                 # Local database (Hive)
+│   ├── hive_manager.dart     # Hive initialization
+│   └── hive_boxes.dart       # Box name constants
+│
+├── offline/                  # Offline-first infrastructure
+│   ├── connectivity_service.dart  # Network monitoring
+│   ├── sync_queue.dart       # Pending operations queue
+│   ├── sync_operation.dart   # Sync operation model
+│   ├── sync_status.dart      # Status enums
+│   ├── offline_manager.dart  # Orchestrates offline behavior
+│   └── connectivity_cubit.dart # UI state management
+│
 └── widgets/                  # Reusable widgets
     ├── app_button.dart
     ├── app_text_field.dart
     ├── app_cached_image.dart
     ├── loading_indicator.dart
-    └── error_widget.dart
+    ├── error_widget.dart
+    └── offline_indicator.dart # Offline status widgets
 ```
 
 ### Features Module
@@ -545,6 +561,246 @@ context.router.pop();
 | `AppCachedImage` | Image with caching | `core/widgets/app_cached_image.dart` |
 | `LoadingIndicator` | Loading spinner | `core/widgets/loading_indicator.dart` |
 | `AppErrorWidget` | Error display | `core/widgets/error_widget.dart` |
+
+### 8. Offline-First Architecture
+
+The app is designed to work seamlessly offline with automatic sync when back online.
+
+#### Offline-First Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Local First** | Hive database is the primary data source |
+| **Eventual Consistency** | Changes sync to server when online |
+| **Queue Operations** | All writes are queued when offline |
+| **Graceful Degradation** | App remains fully functional offline |
+
+#### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     OFFLINE-FIRST FLOW                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   User Action                                                    │
+│        │                                                         │
+│        ▼                                                         │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│   │  Repository │───▶│    Hive     │    │   API       │         │
+│   │  (Local 1st)│    │  (Primary)  │    │ (Secondary) │         │
+│   └──────┬──────┘    └─────────────┘    └──────▲──────┘         │
+│          │                                      │                │
+│          ▼                                      │                │
+│   ┌─────────────┐    Online?    ┌─────────────┐│                │
+│   │  SyncQueue  │──────────────▶│   Process   ├┘                │
+│   │  (Pending)  │      Yes      │   Queue     │                 │
+│   └─────────────┘               └─────────────┘                 │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Core Components
+
+**1. ConnectivityService** - Network monitoring:
+
+```dart
+// Check if online
+if (ConnectivityService.instance.isOnline) {
+  // Make API call
+}
+
+// Listen to changes
+ConnectivityService.instance.onStatusChanged.listen((status) {
+  if (status == ConnectivityStatus.online) {
+    print('Back online!');
+  }
+});
+```
+
+**2. HiveManager** - Database initialization:
+
+```dart
+// Initialize at app startup (done in injection_container.dart)
+await HiveManager.instance.init();
+
+// Access boxes
+final syncBox = HiveManager.instance.getSyncQueueBox();
+final settingsBox = HiveManager.instance.getSettingsBox();
+
+// Clear all data (on logout)
+await HiveManager.instance.clearAll();
+```
+
+**3. SyncQueue** - Queue offline operations:
+
+```dart
+// Add operation to queue
+await SyncQueue.instance.addOperation(
+  operationType: SyncOperationType.create,
+  entityType: 'product',
+  entityId: 'product-123',
+  data: {'name': 'New Product', 'price': 29.99},
+  endpoint: '/api/products',
+);
+
+// Get pending count
+final pending = SyncQueue.instance.pendingCount;
+
+// Process queue when online
+final result = await SyncQueue.instance.processQueue();
+print('Synced: ${result.succeeded}/${result.processed}');
+```
+
+**4. OfflineManager** - Orchestrates everything:
+
+```dart
+// Queue and auto-sync
+await OfflineManager.instance.queueOperation(
+  operationType: SyncOperationType.update,
+  entityType: 'user',
+  entityId: 'user-1',
+  data: {'name': 'John Doe'},
+  endpoint: '/api/users/user-1',
+);
+
+// Manual sync
+await OfflineManager.instance.processQueue();
+
+// Listen to status changes
+OfflineManager.instance.onStatusChanged.listen((status) {
+  print('Online: ${status.isOnline}, Pending: ${status.pendingCount}');
+});
+```
+
+#### UI Widgets
+
+**OfflineBanner** - Shows when offline:
+
+```dart
+Scaffold(
+  body: Column(
+    children: [
+      const OfflineBanner(),  // Shows only when offline
+      Expanded(child: content),
+    ],
+  ),
+)
+```
+
+**OfflineIndicatorDot** - Status dot for app bar:
+
+```dart
+AppBar(
+  title: Text('My App'),
+  actions: [
+    const OfflineIndicatorDot(),  // Green/Red/Blue dot
+  ],
+)
+```
+
+**OfflineAwareButton** - Disable actions when offline:
+
+```dart
+OfflineAwareButton(
+  onPressed: () => submitForm(),
+  offlineMessage: 'You must be online to submit',
+  child: ElevatedButton(
+    child: Text('Submit'),
+  ),
+)
+```
+
+**ConnectivityListener** - Snackbar notifications:
+
+```dart
+// Already added in App widget
+ConnectivityListener(
+  showOnlineMessage: true,
+  showOfflineMessage: true,
+  child: MaterialApp(...),
+)
+```
+
+#### Using ConnectivityCubit in UI
+
+```dart
+// Check state in widget
+BlocBuilder<ConnectivityCubit, ConnectivityState>(
+  builder: (context, state) {
+    if (state.isOffline) {
+      return Text('Working offline');
+    }
+    if (state.isSyncing) {
+      return Text('Syncing ${state.pendingOperations} items...');
+    }
+    return Text('Online');
+  },
+)
+
+// Trigger manual sync
+context.read<ConnectivityCubit>().sync();
+
+// Retry failed operations
+context.read<ConnectivityCubit>().retryFailed();
+```
+
+#### Implementing Offline-First in Repository
+
+```dart
+class ProductRepositoryImpl implements ProductRepository {
+  final ProductRemoteDataSource remoteDataSource;
+  final HiveManager hiveManager;
+  final OfflineManager offlineManager;
+
+  @override
+  Future<Either<Failure, List<Product>>> getProducts() async {
+    // 1. Try local first
+    final localProducts = _getLocalProducts();
+
+    // 2. Return local if offline
+    if (offlineManager.isOffline) {
+      return Right(localProducts);
+    }
+
+    // 3. Fetch from remote if online
+    try {
+      final remoteProducts = await remoteDataSource.getProducts();
+      await _saveToLocal(remoteProducts);  // Update local
+      return Right(remoteProducts);
+    } catch (e) {
+      // Fallback to local on error
+      return Right(localProducts);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> createProduct(Product product) async {
+    // 1. Save locally first
+    await _saveToLocal([product]);
+
+    // 2. Queue for sync
+    await offlineManager.queueOperation(
+      operationType: SyncOperationType.create,
+      entityType: 'product',
+      entityId: product.id,
+      data: product.toJson(),
+      endpoint: '/api/products',
+    );
+
+    return const Right(null);  // Success (will sync later)
+  }
+}
+```
+
+#### Best Practices
+
+| Practice | Description |
+|----------|-------------|
+| **Local-first reads** | Always read from Hive first for instant UI |
+| **Queue all writes** | Queue writes even when online for resilience |
+| **Conflict resolution** | Use timestamps or version numbers |
+| **Stale data cleanup** | Remove old pending operations (7+ days) |
+| **User feedback** | Always show sync status in UI |
 
 ---
 
