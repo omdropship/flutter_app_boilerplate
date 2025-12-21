@@ -27,7 +27,7 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _navigateAfterSplash() async {
     // Wait for splash duration
-    await Future.delayed(AppDurations.splashDuration);
+    await Future<void>.delayed(AppDurations.splashDuration);
 
     if (!mounted) return;
 
@@ -37,7 +37,7 @@ class _SplashPageState extends State<SplashPage> {
         cacheManager.getBool(CacheKeys.onboardingCompleted) ?? false;
 
     if (!onboardingCompleted) {
-      context.router.replace(const OnboardingRoute());
+      await context.router.replace(const OnboardingRoute());
       return;
     }
 

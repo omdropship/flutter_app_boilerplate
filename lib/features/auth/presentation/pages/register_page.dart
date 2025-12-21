@@ -112,7 +112,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   // Password Field
                   AppTextField.password(
                     controller: _passwordController,
-                    textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your password';

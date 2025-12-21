@@ -6,7 +6,7 @@ part 'user_model.freezed.dart';
 part 'user_model.g.dart';
 
 @freezed
-class UserModel with _$UserModel implements CacheableModel {
+abstract class UserModel with _$UserModel implements CacheableModel {
   const UserModel._();
 
   const factory UserModel({
@@ -40,7 +40,7 @@ class UserModel with _$UserModel implements CacheableModel {
 }
 
 @freezed
-class AuthResponse with _$AuthResponse {
+abstract class AuthResponse with _$AuthResponse {
   const factory AuthResponse({
     required UserModel user,
     @JsonKey(name: 'access_token') required String accessToken,

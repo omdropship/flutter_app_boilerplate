@@ -55,7 +55,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       value: true,
     );
     if (mounted) {
-      context.router.replace(const LoginRoute());
+      await context.router.replace(const LoginRoute());
     }
   }
 
@@ -139,7 +139,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   decoration: BoxDecoration(
                     color: _currentPage == index
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.primary.withOpacity(0.3),
+                        : theme.colorScheme.primary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
 
 // Pages - import all your pages
 import '../../features/auth/presentation/pages/login_page.dart';

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,7 @@ class SettingsPage extends StatelessWidget {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthUnauthenticated) {
+          if (state is Unauthenticated) {
             context.router.replaceAll([const LoginRoute()]);
           }
         },
@@ -198,7 +200,7 @@ class SettingsPage extends StatelessWidget {
   }
 
   void _showThemeDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -249,7 +251,7 @@ class SettingsPage extends StatelessWidget {
   void _showLanguageDialog(BuildContext context) {
     final localeCubit = context.read<LocaleCubit>();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -277,7 +279,7 @@ class SettingsPage extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -291,7 +293,7 @@ class SettingsPage extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
-                context.read<AuthBloc>().add(const LogoutRequested());
+                context.read<AuthBloc>().add(const LogoutEvent());
               },
               child: Text(
                 LocaleKeys.authLogout.tr(),

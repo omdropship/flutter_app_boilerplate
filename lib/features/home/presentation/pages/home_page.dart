@@ -133,7 +133,7 @@ class HomePage extends StatelessWidget {
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor:
-                        context.colorScheme.primary.withOpacity(0.1),
+                        context.colorScheme.primary.withValues(alpha: 0.1),
                     child: Icon(
                       Icons.access_time,
                       color: context.colorScheme.primary,
