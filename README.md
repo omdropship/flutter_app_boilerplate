@@ -4,335 +4,492 @@ Production-ready Flutter boilerplate with Clean Architecture, BLoC state managem
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the App](#running-the-app)
 - [Architecture](#architecture)
-  - [Clean Architecture Layers](#clean-architecture-layers)
+  - [What is Clean Architecture?](#what-is-clean-architecture)
+  - [Layer Diagram](#layer-diagram)
   - [Data Flow](#data-flow)
+  - [Why This Architecture?](#why-this-architecture)
 - [Project Structure](#project-structure)
-- [Core Modules](#core-modules)
-  - [Error Handling](#error-handling)
-  - [Network Layer](#network-layer)
-  - [Cache Layer](#cache-layer)
-  - [Theme System](#theme-system)
-  - [Localization](#localization)
-  - [Navigation](#navigation)
+  - [Root Level Files](#root-level-files)
+  - [Core Module](#core-module)
+  - [Features Module](#features-module)
+- [Core Modules Explained](#core-modules-explained)
+  - [Error Handling](#1-error-handling)
+  - [Network Layer (Dio)](#2-network-layer-dio)
+  - [Cache Layer (SharedPreferences)](#3-cache-layer-sharedpreferences)
+  - [Theme System](#4-theme-system)
+  - [Localization (Multi-language)](#5-localization-multi-language)
+  - [Navigation](#6-navigation)
+  - [Widgets](#7-reusable-widgets)
 - [Features](#features)
   - [Auth Feature (Example)](#auth-feature-example)
-  - [Adding a New Feature](#adding-a-new-feature)
-- [State Management](#state-management)
-- [Dependency Injection](#dependency-injection)
+  - [Other Features](#other-features)
+- [How to Add a New Feature](#how-to-add-a-new-feature)
+  - [Step 1: Create Folder Structure](#step-1-create-folder-structure)
+  - [Step 2: Create Domain Layer](#step-2-create-domain-layer)
+  - [Step 3: Create Data Layer](#step-3-create-data-layer)
+  - [Step 4: Create Presentation Layer](#step-4-create-presentation-layer)
+  - [Step 5: Register Dependencies](#step-5-register-dependencies)
+  - [Step 6: Add Route](#step-6-add-route)
+- [State Management (BLoC)](#state-management-bloc)
+  - [Events](#events)
+  - [States](#states)
+  - [BLoC Class](#bloc-class)
+  - [Using in UI](#using-in-ui)
+- [Dependency Injection (GetIt)](#dependency-injection-getit)
+  - [Registration Types](#registration-types)
+  - [How to Use](#how-to-use)
 - [Testing](#testing)
+  - [Test Structure](#test-structure)
+  - [Writing Tests](#writing-tests)
+  - [Running Tests](#running-tests)
 - [Commands Reference](#commands-reference)
-- [Customization](#customization)
+- [Customization Guide](#customization-guide)
+  - [Change App Name](#change-app-name)
+  - [Change API URL](#change-api-url)
+  - [Change Colors](#change-colors)
+  - [Add New Translation](#add-new-translation)
 - [FAQ](#faq)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ---
 
 ## Overview
 
-| Feature | Technology |
-|---------|------------|
-| Architecture | Clean Architecture |
-| State Management | BLoC / Cubit |
-| Dependency Injection | GetIt |
-| Routing | Auto Route |
-| HTTP Client | Dio |
-| Local Storage | SharedPreferences |
-| Localization | Easy Localization |
-| Code Generation | Freezed, JSON Serializable |
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Architecture | Clean Architecture | Separation of concerns |
+| State Management | BLoC / Cubit | Predictable state changes |
+| Dependency Injection | GetIt | Service locator pattern |
+| Routing | Auto Route | Type-safe navigation |
+| HTTP Client | Dio | API requests with interceptors |
+| Local Storage | SharedPreferences | Key-value cache |
+| Localization | Easy Localization | Multi-language support |
+| Code Generation | Freezed, JSON Serializable | Immutable models |
 
 ---
 
-## Quick Start
+## Getting Started
 
-### 1. Clone and Install
+### Prerequisites
+
+Make sure you have these installed:
+
+| Tool | Version | Check Command |
+|------|---------|---------------|
+| Flutter | 3.10+ | `flutter --version` |
+| Dart | 3.0+ | `dart --version` |
+| IDE | VS Code or Android Studio | - |
+
+### Installation
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/yourusername/flutter_app_boilerplate.git
+
+# 2. Navigate to project
 cd flutter_app_boilerplate
+
+# 3. Install dependencies
 flutter pub get
-```
 
-### 2. Generate Code
-
-```bash
+# 4. Generate code (Freezed, Auto Route, etc.)
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 3. Run
+### Running the App
 
 ```bash
+# Run in debug mode
 flutter run
+
+# Run in release mode
+flutter run --release
+
+# Run on specific device
+flutter run -d <device_id>
 ```
 
 ---
 
 ## Architecture
 
-### Clean Architecture Layers
+### What is Clean Architecture?
+
+Clean Architecture separates your code into **3 layers**, each with a specific responsibility:
+
+| Layer | Responsibility | Contains |
+|-------|---------------|----------|
+| **Presentation** | UI & State Management | Pages, Widgets, BLoCs |
+| **Domain** | Business Logic | Entities, UseCases, Repository Interfaces |
+| **Data** | Data Operations | Models, DataSources, Repository Implementations |
+
+### Layer Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      PRESENTATION                            │
-│                                                              │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐             │
-│   │  Pages   │    │   BLoC   │    │ Widgets  │             │
-│   └────┬─────┘    └────┬─────┘    └──────────┘             │
-│        │               │                                    │
-├────────┼───────────────┼────────────────────────────────────┤
-│        │    DOMAIN     │                                    │
-│        ▼               ▼                                    │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐             │
-│   │ UseCases │    │ Entities │    │  Repos   │ (abstract)  │
-│   └────┬─────┘    └──────────┘    └────┬─────┘             │
-│        │                               │                    │
-├────────┼───────────────────────────────┼────────────────────┤
-│        │         DATA                  │                    │
-│        ▼                               ▼                    │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐             │
-│   │  Repos   │    │  Models  │    │ DataSrcs │             │
-│   │  (impl)  │    │ (freezed)│    │ (remote/ │             │
-│   └──────────┘    └──────────┘    │  local)  │             │
-│                                   └──────────┘             │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        PRESENTATION                              │
+│                      (UI & State)                                │
+│                                                                  │
+│   ┌──────────┐      ┌──────────┐      ┌──────────┐              │
+│   │  Pages   │      │   BLoC   │      │ Widgets  │              │
+│   │  (UI)    │ ───▶ │ (State)  │      │  (UI)    │              │
+│   └──────────┘      └────┬─────┘      └──────────┘              │
+│                          │                                       │
+├──────────────────────────┼───────────────────────────────────────┤
+│                     DOMAIN                                       │
+│               (Business Logic)                                   │
+│                          │                                       │
+│                          ▼                                       │
+│   ┌──────────┐      ┌──────────┐      ┌──────────┐              │
+│   │ Entities │      │ UseCases │      │  Repos   │ (interface)  │
+│   │ (Models) │      │ (Logic)  │      │ (Contract)│              │
+│   └──────────┘      └────┬─────┘      └────┬─────┘              │
+│                          │                 │                     │
+├──────────────────────────┼─────────────────┼─────────────────────┤
+│                       DATA                 │                     │
+│                 (Data Access)              │                     │
+│                          │                 │                     │
+│                          ▼                 ▼                     │
+│   ┌──────────┐      ┌──────────┐      ┌──────────┐              │
+│   │  Models  │      │  Repos   │      │DataSources│             │
+│   │(Freezed) │      │  (impl)  │      │ (API/DB) │              │
+│   └──────────┘      └──────────┘      └──────────┘              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Data Flow
 
+When user taps "Login" button:
+
 ```
-User Action
-    │
-    ▼
-┌─────────┐     ┌─────────┐     ┌────────────┐     ┌────────────┐
-│  Page   │ ──▶ │  BLoC   │ ──▶ │  UseCase   │ ──▶ │ Repository │
-└─────────┘     └─────────┘     └────────────┘     └────────────┘
-                                                          │
-                    ┌─────────────────────────────────────┘
-                    │
-                    ▼
-            ┌──────────────┐
-            │  DataSource  │
-            │              │
-            │ ┌──────────┐ │
-            │ │  Remote  │ │ ──▶ API
-            │ └──────────┘ │
-            │ ┌──────────┐ │
-            │ │  Local   │ │ ──▶ Cache
-            │ └──────────┘ │
-            └──────────────┘
+1. User taps Login
+        │
+        ▼
+┌───────────────┐
+│  LoginPage    │  ──▶  Sends LoginRequested event
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│   AuthBloc    │  ──▶  Calls LoginUser usecase
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  LoginUser    │  ──▶  Calls AuthRepository.login()
+│  (UseCase)    │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│AuthRepository │  ──▶  Calls RemoteDataSource
+│    (impl)     │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│RemoteDataSrc  │  ──▶  Makes API call via Dio
+└───────┬───────┘
+        │
+        ▼
+     Response flows back up the chain
 ```
 
-**Key Rules:**
-- Domain layer has NO external dependencies (pure Dart)
-- Data layer implements Domain interfaces
-- Presentation layer only knows about Domain
-- Dependencies point inward (outer → inner)
+### Why This Architecture?
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Testable** | Each layer can be tested independently |
+| **Maintainable** | Changes in one layer don't affect others |
+| **Scalable** | Easy to add new features |
+| **Readable** | Clear separation makes code easy to understand |
 
 ---
 
 ## Project Structure
 
+### Root Level Files
+
 ```
 lib/
-├── main.dart                    # App entry point
-├── app.dart                     # Root widget with providers
-├── injection_container.dart     # GetIt DI setup
+├── main.dart              # App entry point with error handling
+├── app.dart               # Root widget with providers
+└── injection_container.dart   # Dependency injection setup
+```
+
+### Core Module
+
+Shared code used across all features:
+
+```
+lib/core/
 │
-├── config/
-│   └── routes/
-│       └── app_router.dart      # Auto Route config
+├── cache/                    # Local storage
+│   ├── cache_keys.dart       # Enum of all cache keys
+│   ├── cache_manager.dart    # SharedPreferences wrapper
+│   └── cacheable_base_model.dart
 │
-├── core/                        # Shared code
-│   ├── cache/
-│   │   ├── cache_keys.dart      # Cache key enum
-│   │   ├── cache_manager.dart   # SharedPreferences wrapper
-│   │   └── cacheable_base_model.dart
-│   │
-│   ├── constants/
-│   │   ├── api_constants.dart   # API URLs, timeouts
-│   │   ├── app_assets.dart      # Asset paths
-│   │   ├── app_durations.dart   # Animation durations
-│   │   └── app_spacing.dart     # Spacing values
-│   │
-│   ├── error/
-│   │   ├── exceptions.dart      # Low-level exceptions
-│   │   └── failures.dart        # High-level failures
-│   │
-│   ├── extensions/
-│   │   ├── context_extensions.dart
-│   │   ├── datetime_extensions.dart
-│   │   └── string_extensions.dart
-│   │
-│   ├── localization/
-│   │   ├── locale_keys.dart     # Type-safe translation keys
-│   │   ├── localization_manager.dart
-│   │   └── supported_locales.dart
-│   │
-│   ├── navigation/
-│   │   └── navigation_manager.dart
-│   │
-│   ├── network/
-│   │   └── dio_client.dart      # HTTP client singleton
-│   │
-│   ├── theme/
-│   │   ├── app_theme.dart       # Base theme interface
-│   │   ├── dark/
-│   │   │   ├── color_scheme_dark.dart
-│   │   │   ├── dark_theme.dart
-│   │   │   └── text_theme_dark.dart
-│   │   └── light/
-│   │       ├── color_scheme_light.dart
-│   │       ├── light_theme.dart
-│   │       └── text_theme_light.dart
-│   │
-│   ├── usecases/
-│   │   └── usecase.dart         # Base UseCase interface
-│   │
-│   └── widgets/                 # Reusable widgets
-│       ├── app_button.dart
-│       ├── app_cached_image.dart
-│       ├── app_text_field.dart
-│       ├── error_widget.dart
-│       └── loading_indicator.dart
+├── constants/                # App-wide constants
+│   ├── api_constants.dart    # Base URL, endpoints
+│   ├── app_assets.dart       # Asset paths
+│   ├── app_durations.dart    # Animation durations
+│   └── app_spacing.dart      # Spacing values (4, 8, 16...)
 │
-└── features/                    # Feature modules
-    ├── auth/
-    │   ├── data/
-    │   │   ├── datasources/
-    │   │   ├── models/
-    │   │   └── repositories/
-    │   ├── domain/
-    │   │   ├── entities/
-    │   │   ├── repositories/
-    │   │   └── usecases/
-    │   └── presentation/
-    │       ├── bloc/
-    │       ├── pages/
-    │       └── widgets/
-    ├── home/
-    ├── onboarding/
-    ├── settings/
-    └── splash/
+├── error/                    # Error handling
+│   ├── exceptions.dart       # ServerException, CacheException
+│   └── failures.dart         # ServerFailure, CacheFailure
+│
+├── extensions/               # Dart extensions
+│   ├── context_extensions.dart
+│   ├── datetime_extensions.dart
+│   └── string_extensions.dart
+│
+├── localization/             # Multi-language
+│   ├── locale_keys.dart      # Translation keys
+│   ├── localization_manager.dart
+│   └── supported_locales.dart
+│
+├── navigation/               # Navigation helpers
+│   └── navigation_manager.dart
+│
+├── network/                  # HTTP client
+│   └── dio_client.dart       # Dio singleton with interceptors
+│
+├── theme/                    # App themes
+│   ├── app_theme.dart        # Base theme interface
+│   ├── light/                # Light theme files
+│   │   ├── light_theme.dart
+│   │   ├── color_scheme_light.dart
+│   │   └── text_theme_light.dart
+│   └── dark/                 # Dark theme files
+│       ├── dark_theme.dart
+│       ├── color_scheme_dark.dart
+│       └── text_theme_dark.dart
+│
+├── usecases/                 # Base UseCase
+│   └── usecase.dart
+│
+└── widgets/                  # Reusable widgets
+    ├── app_button.dart
+    ├── app_text_field.dart
+    ├── app_cached_image.dart
+    ├── loading_indicator.dart
+    └── error_widget.dart
+```
+
+### Features Module
+
+Each feature follows the same structure:
+
+```
+lib/features/
+│
+├── auth/                     # Authentication feature
+│   ├── data/
+│   │   ├── datasources/
+│   │   ├── models/
+│   │   └── repositories/
+│   ├── domain/
+│   │   ├── entities/
+│   │   ├── repositories/
+│   │   └── usecases/
+│   └── presentation/
+│       ├── bloc/
+│       ├── pages/
+│       └── widgets/
+│
+├── home/                     # Home feature
+├── onboarding/               # Onboarding feature
+├── settings/                 # Settings feature
+├── splash/                   # Splash screen
+└── main_navigation/          # Bottom navigation
 ```
 
 ---
 
-## Core Modules
+## Core Modules Explained
 
-### Error Handling
+### 1. Error Handling
 
-Two-layer error system using the Either pattern:
+Two types of errors:
 
-| Layer | Type | Where Used |
-|-------|------|------------|
-| Low-level | `Exception` | DataSources |
-| High-level | `Failure` | BLoC/Presentation |
+| Type | Used In | Purpose |
+|------|---------|---------|
+| `Exception` | DataSource | Low-level errors (API errors) |
+| `Failure` | BLoC/UI | High-level errors (user-facing) |
 
-**Example:**
+**How it works:**
 
 ```dart
-// In DataSource - throw exceptions
-throw ServerException(message: 'User not found', statusCode: 404);
+// 1. DataSource throws Exception
+class AuthRemoteDataSource {
+  Future<UserModel> login(String email, String password) async {
+    final response = await dio.post('/login', data: {...});
 
-// In Repository - catch and convert to failures
-try {
-  return Right(await remoteDataSource.login(...));
-} on ServerException catch (e) {
-  return Left(ServerFailure(message: e.message));
+    if (response.statusCode != 200) {
+      throw ServerException(
+        message: 'Login failed',
+        statusCode: response.statusCode,
+      );
+    }
+
+    return UserModel.fromJson(response.data);
+  }
 }
 
-// In BLoC - handle failures
-result.fold(
-  (failure) => emit(AuthError(failure.message)),
-  (user) => emit(Authenticated(user)),
-);
+// 2. Repository catches Exception, returns Failure
+class AuthRepositoryImpl implements AuthRepository {
+  @override
+  Future<Either<Failure, User>> login(...) async {
+    try {
+      final user = await remoteDataSource.login(...);
+      return Right(user);  // Success
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));  // Failure
+    }
+  }
+}
+
+// 3. BLoC handles Failure
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  Future<void> _onLogin(...) async {
+    final result = await loginUser(params);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),  // Handle failure
+      (user) => emit(AuthAuthenticated(user)),        // Handle success
+    );
+  }
+}
 ```
 
-### Network Layer
+### 2. Network Layer (Dio)
 
-Singleton Dio client with interceptors:
+Singleton HTTP client with automatic token handling:
 
 ```dart
-// Make requests
+// Make GET request
 final response = await DioClient.instance.get('/users');
-final response = await DioClient.instance.post('/login', data: {...});
 
-// Set auth token
-DioClient.instance.setAuthToken('your-token');
+// Make POST request
+final response = await DioClient.instance.post(
+  '/login',
+  data: {'email': email, 'password': password},
+);
 
-// Clear auth token
+// Set auth token (after login)
+DioClient.instance.setAuthToken('your-jwt-token');
+
+// Clear auth token (after logout)
 DioClient.instance.clearAuthToken();
 ```
 
-**Interceptors:**
-- Logging (debug mode only)
-- Error handling (401 detection)
+**Built-in Interceptors:**
 
-### Cache Layer
+| Interceptor | Function |
+|-------------|----------|
+| Logging | Logs requests/responses in debug mode |
+| Error Handling | Detects 401 errors for auto-logout |
 
-Type-safe caching with SharedPreferences:
+### 3. Cache Layer (SharedPreferences)
+
+Type-safe local storage:
 
 ```dart
-// String
-await CacheManager.instance.setString(CacheKeys.accessToken, token);
+// Save string
+await CacheManager.instance.setString(CacheKeys.accessToken, 'token123');
+
+// Get string
 final token = CacheManager.instance.getString(CacheKeys.accessToken);
 
-// Bool
+// Save boolean
 await CacheManager.instance.setBool(CacheKeys.onboardingCompleted, value: true);
 
-// Object (must implement CacheableModel)
-await CacheManager.instance.setObject(CacheKeys.user, userModel);
-final user = CacheManager.instance.getObject(CacheKeys.user, UserModel.fromJson);
+// Get boolean
+final completed = CacheManager.instance.getBool(CacheKeys.onboardingCompleted);
 
-// List
+// Save object (must implement CacheableModel)
+await CacheManager.instance.setObject(CacheKeys.user, userModel);
+
+// Get object
+final user = CacheManager.instance.getObject(
+  CacheKeys.user,
+  UserModel.fromJson,
+);
+
+// Save list
 await CacheManager.instance.setList(CacheKeys.favorites, items);
+
+// Clear all
+await CacheManager.instance.clear();
 ```
 
-### Theme System
+### 4. Theme System
+
+**Access theme in widgets:**
 
 ```dart
-// Access current theme
-final colorScheme = Theme.of(context).colorScheme;
-final textTheme = Theme.of(context).textTheme;
+// Using Theme.of
+final colors = Theme.of(context).colorScheme;
+final text = Theme.of(context).textTheme;
 
-// Or use extensions
+// Using extensions (cleaner)
 context.colorScheme.primary
 context.textTheme.headlineLarge
+```
 
-// Toggle theme
+**Toggle theme:**
+
+```dart
+// Toggle between light/dark
 context.read<ThemeCubit>().toggleTheme();
 
 // Set specific theme
 context.read<ThemeCubit>().setTheme(ThemeMode.dark);
+context.read<ThemeCubit>().setTheme(ThemeMode.light);
+context.read<ThemeCubit>().setTheme(ThemeMode.system);
 ```
 
-**Customization:**
-1. Edit `lib/core/theme/light/color_scheme_light.dart`
-2. Edit `lib/core/theme/dark/color_scheme_dark.dart`
+**Customize colors:**
 
-### Localization
+Edit these files:
+- Light: `lib/core/theme/light/color_scheme_light.dart`
+- Dark: `lib/core/theme/dark/color_scheme_dark.dart`
 
-**Type-safe translations:**
+### 5. Localization (Multi-language)
+
+**Use translations:**
 
 ```dart
-// Basic usage
+// Basic
 Text(LocaleKeys.authLogin.tr())
 
 // With named arguments
 Text(LocaleKeys.homeWelcome.tr(namedArgs: {'name': 'John'}))
-// JSON: "welcome": "Welcome, {name}!"
+// Translation: "welcome": "Welcome, {name}!"
+```
 
-// Change language
+**Change language:**
+
+```dart
 context.read<LocaleCubit>().setLocale(context, SupportedLocale.turkish);
+context.read<LocaleCubit>().setLocale(context, SupportedLocale.english);
 ```
 
 **Add new language:**
 
-1. Create `assets/translations/xx.json`
-2. Add to `SupportedLocale` enum:
+1. Create translation file: `assets/translations/xx.json`
+2. Add to `SupportedLocale` enum in `supported_locales.dart`:
+
 ```dart
 newLanguage(
   locale: Locale('xx'),
@@ -342,20 +499,52 @@ newLanguage(
   flag: '🏳️',
 ),
 ```
-3. Add to `main.dart` supportedLocales
 
-### Navigation
+3. Add to `main.dart` supportedLocales list
+
+### 6. Navigation
+
+**Using NavigationManager:**
 
 ```dart
-// Using NavigationManager
+// Push new screen
 NavigationManager.instance.push(NavigationRoute.home);
+
+// Replace current screen
 NavigationManager.instance.replace(NavigationRoute.login);
+
+// Pop current screen
 NavigationManager.instance.pop();
 
-// Using Auto Route directly
-context.router.push(const HomeRoute());
-context.router.replaceAll([const LoginRoute()]);
+// Replace all screens
+NavigationManager.instance.replaceAll([NavigationRoute.home]);
 ```
+
+**Using Auto Route directly:**
+
+```dart
+// Push
+context.router.push(const HomeRoute());
+
+// Replace
+context.router.replace(const LoginRoute());
+
+// Replace all
+context.router.replaceAll([const HomeRoute()]);
+
+// Pop
+context.router.pop();
+```
+
+### 7. Reusable Widgets
+
+| Widget | Purpose | Location |
+|--------|---------|----------|
+| `AppButton` | Primary/Secondary buttons | `core/widgets/app_button.dart` |
+| `AppTextField` | Styled text input | `core/widgets/app_text_field.dart` |
+| `AppCachedImage` | Image with caching | `core/widgets/app_cached_image.dart` |
+| `LoadingIndicator` | Loading spinner | `core/widgets/loading_indicator.dart` |
+| `AppErrorWidget` | Error display | `core/widgets/error_widget.dart` |
 
 ---
 
@@ -363,91 +552,350 @@ context.router.replaceAll([const LoginRoute()]);
 
 ### Auth Feature (Example)
 
+Complete authentication implementation:
+
 ```
 features/auth/
+│
 ├── data/
 │   ├── datasources/
-│   │   ├── auth_local_datasource.dart    # Cache operations
-│   │   └── auth_remote_datasource.dart   # API calls
+│   │   ├── auth_remote_datasource.dart   # API calls
+│   │   └── auth_local_datasource.dart    # Cache operations
 │   ├── models/
-│   │   └── user_model.dart               # Freezed DTO
+│   │   └── user_model.dart               # Freezed model
 │   └── repositories/
-│       └── auth_repository_impl.dart     # Implementation
+│       └── auth_repository_impl.dart     # Repository implementation
+│
 ├── domain/
 │   ├── entities/
-│   │   └── user.dart                     # Pure Dart entity
+│   │   └── user.dart                     # User entity
 │   ├── repositories/
-│   │   └── auth_repository.dart          # Abstract interface
+│   │   └── auth_repository.dart          # Repository interface
 │   └── usecases/
-│       ├── get_current_user.dart
-│       ├── login_user.dart
-│       ├── logout_user.dart
-│       └── register_user.dart
+│       ├── login_user.dart               # Login logic
+│       ├── register_user.dart            # Register logic
+│       ├── logout_user.dart              # Logout logic
+│       └── get_current_user.dart         # Get cached user
+│
 └── presentation/
     ├── bloc/
-    │   ├── auth_bloc.dart
-    │   ├── auth_event.dart
-    │   └── auth_state.dart
+    │   ├── auth_bloc.dart                # State management
+    │   ├── auth_event.dart               # Events
+    │   └── auth_state.dart               # States
     ├── pages/
-    │   ├── login_page.dart
-    │   └── register_page.dart
+    │   ├── login_page.dart               # Login UI
+    │   └── register_page.dart            # Register UI
     └── widgets/
-        └── auth_form.dart
+        └── auth_form.dart                # Shared form widget
 ```
 
-### Adding a New Feature
+### Other Features
 
-**Step 1: Create folder structure**
+| Feature | Description |
+|---------|-------------|
+| `splash` | Splash screen with initialization |
+| `onboarding` | First-time user onboarding |
+| `home` | Main home screen |
+| `settings` | Theme and language settings |
+| `main_navigation` | Bottom navigation wrapper |
+
+---
+
+## How to Add a New Feature
+
+Let's add a "Products" feature step by step:
+
+### Step 1: Create Folder Structure
 
 ```bash
-mkdir -p lib/features/your_feature/{data/{datasources,models,repositories},domain/{entities,repositories,usecases},presentation/{bloc,pages,widgets}}
+mkdir -p lib/features/products/{data/{datasources,models,repositories},domain/{entities,repositories,usecases},presentation/{bloc,pages,widgets}}
 ```
 
-**Step 2: Create files in order**
+This creates:
 
-| Order | Layer | File | Description |
-|-------|-------|------|-------------|
-| 1 | Domain | `entity.dart` | Pure Dart class |
-| 2 | Domain | `repository.dart` | Abstract interface |
-| 3 | Domain | `usecase.dart` | Business logic |
-| 4 | Data | `model.dart` | Freezed DTO |
-| 5 | Data | `datasource.dart` | API/Cache calls |
-| 6 | Data | `repository_impl.dart` | Implementation |
-| 7 | Presentation | `bloc.dart` | State management |
-| 8 | Presentation | `page.dart` | UI |
+```
+lib/features/products/
+├── data/
+│   ├── datasources/
+│   ├── models/
+│   └── repositories/
+├── domain/
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+└── presentation/
+    ├── bloc/
+    ├── pages/
+    └── widgets/
+```
 
-**Step 3: Register in DI**
+### Step 2: Create Domain Layer
+
+**2.1 Entity** (`domain/entities/product.dart`):
 
 ```dart
-// injection_container.dart
-Future<void> _initYourFeature() async {
-  // BLoC
-  sl.registerFactory<YourBloc>(() => YourBloc(sl()));
+class Product {
+  final String id;
+  final String name;
+  final double price;
+  final String? imageUrl;
 
-  // UseCases
-  sl.registerLazySingleton<YourUseCase>(() => YourUseCase(sl()));
+  const Product({
+    required this.id,
+    required this.name,
+    required this.price,
+    this.imageUrl,
+  });
+}
+```
 
-  // Repository
-  sl.registerLazySingleton<YourRepository>(() => YourRepositoryImpl(
-    remoteDataSource: sl(),
-    localDataSource: sl(),
-  ));
+**2.2 Repository Interface** (`domain/repositories/product_repository.dart`):
 
-  // DataSources
-  sl.registerLazySingleton<YourRemoteDataSource>(
-    () => YourRemoteDataSourceImpl(dioClient: sl()),
+```dart
+abstract class ProductRepository {
+  Future<Either<Failure, List<Product>>> getProducts();
+  Future<Either<Failure, Product>> getProductById(String id);
+}
+```
+
+**2.3 UseCase** (`domain/usecases/get_products.dart`):
+
+```dart
+class GetProducts implements UseCase<List<Product>, NoParams> {
+  final ProductRepository repository;
+
+  GetProducts(this.repository);
+
+  @override
+  Future<Either<Failure, List<Product>>> call(NoParams params) {
+    return repository.getProducts();
+  }
+}
+```
+
+### Step 3: Create Data Layer
+
+**3.1 Model** (`data/models/product_model.dart`):
+
+```dart
+@freezed
+class ProductModel with _$ProductModel implements CacheableModel {
+  const factory ProductModel({
+    required String id,
+    required String name,
+    required double price,
+    String? imageUrl,
+  }) = _ProductModel;
+
+  factory ProductModel.fromJson(Map<String, dynamic> json) =>
+      _$ProductModelFromJson(json);
+
+  // Convert to entity
+  Product toEntity() => Product(
+    id: id,
+    name: name,
+    price: price,
+    imageUrl: imageUrl,
   );
 }
 ```
 
-**Step 4: Add route**
+**3.2 DataSource** (`data/datasources/product_remote_datasource.dart`):
 
 ```dart
-// app_router.dart
-AutoRoute(page: YourRoute.page),
+abstract class ProductRemoteDataSource {
+  Future<List<ProductModel>> getProducts();
+}
+
+class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
+  final DioClient dioClient;
+
+  ProductRemoteDataSourceImpl({required this.dioClient});
+
+  @override
+  Future<List<ProductModel>> getProducts() async {
+    final response = await dioClient.get('/products');
+    return (response.data as List)
+        .map((json) => ProductModel.fromJson(json))
+        .toList();
+  }
+}
 ```
 
-**Step 5: Generate code**
+**3.3 Repository Implementation** (`data/repositories/product_repository_impl.dart`):
+
+```dart
+class ProductRepositoryImpl implements ProductRepository {
+  final ProductRemoteDataSource remoteDataSource;
+
+  ProductRepositoryImpl({required this.remoteDataSource});
+
+  @override
+  Future<Either<Failure, List<Product>>> getProducts() async {
+    try {
+      final models = await remoteDataSource.getProducts();
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    }
+  }
+}
+```
+
+### Step 4: Create Presentation Layer
+
+**4.1 Events** (`presentation/bloc/product_event.dart`):
+
+```dart
+abstract class ProductEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class LoadProducts extends ProductEvent {}
+```
+
+**4.2 States** (`presentation/bloc/product_state.dart`):
+
+```dart
+abstract class ProductState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class ProductInitial extends ProductState {}
+class ProductLoading extends ProductState {}
+class ProductLoaded extends ProductState {
+  final List<Product> products;
+  ProductLoaded(this.products);
+}
+class ProductError extends ProductState {
+  final String message;
+  ProductError(this.message);
+}
+```
+
+**4.3 BLoC** (`presentation/bloc/product_bloc.dart`):
+
+```dart
+class ProductBloc extends Bloc<ProductEvent, ProductState> {
+  final GetProducts getProducts;
+
+  ProductBloc({required this.getProducts}) : super(ProductInitial()) {
+    on<LoadProducts>(_onLoadProducts);
+  }
+
+  Future<void> _onLoadProducts(
+    LoadProducts event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(ProductLoading());
+
+    final result = await getProducts(NoParams());
+
+    result.fold(
+      (failure) => emit(ProductError(failure.message)),
+      (products) => emit(ProductLoaded(products)),
+    );
+  }
+}
+```
+
+**4.4 Page** (`presentation/pages/products_page.dart`):
+
+```dart
+@RoutePage()
+class ProductsPage extends StatelessWidget {
+  const ProductsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<ProductBloc>()..add(LoadProducts()),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Products')),
+        body: BlocBuilder<ProductBloc, ProductState>(
+          builder: (context, state) {
+            if (state is ProductLoading) {
+              return const LoadingIndicator();
+            }
+            if (state is ProductError) {
+              return AppErrorWidget(message: state.message);
+            }
+            if (state is ProductLoaded) {
+              return ListView.builder(
+                itemCount: state.products.length,
+                itemBuilder: (context, index) {
+                  final product = state.products[index];
+                  return ListTile(
+                    title: Text(product.name),
+                    subtitle: Text('\$${product.price}'),
+                  );
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Step 5: Register Dependencies
+
+Add to `injection_container.dart`:
+
+```dart
+Future<void> _initProducts() async {
+  // BLoC
+  sl.registerFactory<ProductBloc>(
+    () => ProductBloc(getProducts: sl()),
+  );
+
+  // UseCases
+  sl.registerLazySingleton<GetProducts>(
+    () => GetProducts(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ProductRepository>(
+    () => ProductRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // DataSource
+  sl.registerLazySingleton<ProductRemoteDataSource>(
+    () => ProductRemoteDataSourceImpl(dioClient: sl()),
+  );
+}
+```
+
+Call it in `initDependencies()`:
+
+```dart
+Future<void> initDependencies() async {
+  // ... existing code
+  await _initProducts();
+}
+```
+
+### Step 6: Add Route
+
+In `app_router.dart`:
+
+```dart
+@AutoRouterConfig()
+class AppRouter extends $AppRouter {
+  @override
+  List<AutoRoute> get routes => [
+    // ... existing routes
+    AutoRoute(page: ProductsRoute.page),
+  ];
+}
+```
+
+**Don't forget to generate code:**
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
@@ -455,105 +903,250 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## State Management
+## State Management (BLoC)
 
-Using BLoC pattern:
+### Events
+
+Events are **inputs** that trigger state changes:
 
 ```dart
-// Events
-abstract class AuthEvent extends Equatable {}
+abstract class AuthEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
 class LoginRequested extends AuthEvent {
   final String email;
   final String password;
+
+  LoginRequested({required this.email, required this.password});
+
+  @override
+  List<Object?> get props => [email, password];
 }
 
-// States
-abstract class AuthState extends Equatable {}
+class LogoutRequested extends AuthEvent {}
+
+class CheckAuthStatus extends AuthEvent {}
+```
+
+### States
+
+States are **outputs** that represent UI state:
+
+```dart
+abstract class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
 class AuthInitial extends AuthState {}
+
 class AuthLoading extends AuthState {}
+
 class AuthAuthenticated extends AuthState {
   final User user;
+
+  AuthAuthenticated(this.user);
+
+  @override
+  List<Object?> get props => [user];
 }
+
+class AuthUnauthenticated extends AuthState {}
+
 class AuthError extends AuthState {
   final String message;
-}
 
-// BLoC
+  AuthError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+```
+
+### BLoC Class
+
+BLoC connects events to states:
+
+```dart
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({required this.loginUser}) : super(const AuthInitial()) {
-    on<LoginRequested>(_onLogin);
+  final LoginUser loginUser;
+  final LogoutUser logoutUser;
+
+  AuthBloc({
+    required this.loginUser,
+    required this.logoutUser,
+  }) : super(const AuthInitial()) {
+    on<LoginRequested>(_onLoginRequested);
+    on<LogoutRequested>(_onLogoutRequested);
   }
 
-  Future<void> _onLogin(LoginRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLoginRequested(
+    LoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
-    final result = await loginUser(LoginParams(
-      email: event.email,
-      password: event.password,
-    ));
+    final result = await loginUser(
+      LoginParams(email: event.email, password: event.password),
+    );
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (user) => emit(AuthAuthenticated(user)),
     );
   }
+
+  Future<void> _onLogoutRequested(
+    LogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    await logoutUser(NoParams());
+    emit(const AuthUnauthenticated());
+  }
 }
 ```
 
-**Using in UI:**
+### Using in UI
+
+**Trigger an event:**
 
 ```dart
-// Trigger event
-context.read<AuthBloc>().add(LoginRequested(email: email, password: password));
+// On button press
+ElevatedButton(
+  onPressed: () {
+    context.read<AuthBloc>().add(
+      LoginRequested(email: email, password: password),
+    );
+  },
+  child: Text('Login'),
+)
+```
 
-// Listen to state
+**Listen to state changes:**
+
+```dart
 BlocBuilder<AuthBloc, AuthState>(
   builder: (context, state) {
-    if (state is AuthLoading) return LoadingIndicator();
-    if (state is AuthError) return Text(state.message);
-    if (state is AuthAuthenticated) return Text('Welcome ${state.user.name}');
-    return LoginForm();
+    if (state is AuthLoading) {
+      return const LoadingIndicator();
+    }
+    if (state is AuthError) {
+      return Text(state.message);
+    }
+    if (state is AuthAuthenticated) {
+      return Text('Welcome, ${state.user.name}');
+    }
+    return const LoginForm();
   },
+)
+```
+
+**React to state changes (navigation, snackbar):**
+
+```dart
+BlocListener<AuthBloc, AuthState>(
+  listener: (context, state) {
+    if (state is AuthAuthenticated) {
+      context.router.replaceAll([const HomeRoute()]);
+    }
+    if (state is AuthError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(state.message)),
+      );
+    }
+  },
+  child: LoginForm(),
 )
 ```
 
 ---
 
-## Dependency Injection
+## Dependency Injection (GetIt)
 
-Using GetIt service locator:
+### Registration Types
+
+| Type | Method | When Created | Use Case |
+|------|--------|--------------|----------|
+| Factory | `registerFactory` | Every time | BLoCs, Cubits |
+| Lazy Singleton | `registerLazySingleton` | First access | UseCases, Repositories |
+| Singleton | `registerSingleton` | Immediately | Core services |
+
+### How to Use
+
+**Registering:**
 
 ```dart
-// Access dependencies
-final authBloc = sl<AuthBloc>();
-final cacheManager = sl<CacheManager>();
+// Factory - new instance each time
+sl.registerFactory<AuthBloc>(() => AuthBloc(
+  loginUser: sl(),
+  logoutUser: sl(),
+));
 
-// Registration types
-sl.registerFactory<T>(() => T());           // New instance each time
-sl.registerLazySingleton<T>(() => T());     // Single instance, lazy
-sl.registerSingleton<T>(T());               // Single instance, immediate
+// Lazy Singleton - one instance, created when first needed
+sl.registerLazySingleton<LoginUser>(() => LoginUser(sl()));
+
+// Singleton - one instance, created immediately
+sl.registerSingleton<DioClient>(DioClient.instance);
 ```
 
-**Registration order matters!** Register dependencies before dependents.
+**Accessing:**
+
+```dart
+// Get instance
+final authBloc = sl<AuthBloc>();
+final loginUser = sl<LoginUser>();
+
+// In BlocProvider
+BlocProvider(
+  create: (_) => sl<AuthBloc>(),
+  child: LoginPage(),
+)
+```
+
+**Registration Order:**
+
+Dependencies must be registered before their dependents:
+
+```dart
+// ✅ Correct order
+sl.registerLazySingleton<DioClient>(() => DioClient.instance);
+sl.registerLazySingleton<AuthRemoteDataSource>(
+  () => AuthRemoteDataSourceImpl(dioClient: sl()),  // sl() gets DioClient
+);
+
+// ❌ Wrong order - DioClient not registered yet
+sl.registerLazySingleton<AuthRemoteDataSource>(
+  () => AuthRemoteDataSourceImpl(dioClient: sl()),  // Error!
+);
+sl.registerLazySingleton<DioClient>(() => DioClient.instance);
+```
 
 ---
 
 ## Testing
 
-### Structure
+### Test Structure
 
 ```
 test/
-├── fixtures/              # JSON test data
+├── fixtures/                    # Test data (JSON files)
 │   ├── user.json
-│   └── auth_response.json
-├── helpers/
-│   ├── pump_app.dart      # Widget test helpers
-│   └── test_helpers.dart  # Test data factory
-├── mocks/
-│   └── mocks.dart         # Mock definitions
-└── features/
+│   └── products.json
+│
+├── helpers/                     # Test utilities
+│   ├── pump_app.dart            # Widget test helper
+│   └── test_helpers.dart        # Test data factory
+│
+├── mocks/                       # Mock classes
+│   └── mocks.dart               # Mocktail mocks
+│
+└── features/                    # Feature tests
     └── auth/
+        ├── data/
+        │   ├── datasources/
+        │   └── repositories/
         ├── domain/
         │   └── usecases/
         │       └── login_user_test.dart
@@ -562,9 +1155,17 @@ test/
                 └── auth_bloc_test.dart
 ```
 
-### Example Test
+### Writing Tests
+
+**UseCase Test:**
 
 ```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:dartz/dartz.dart';
+
+class MockAuthRepository extends Mock implements AuthRepository {}
+
 void main() {
   late LoginUser usecase;
   late MockAuthRepository mockRepository;
@@ -573,6 +1174,8 @@ void main() {
     mockRepository = MockAuthRepository();
     usecase = LoginUser(mockRepository);
   });
+
+  final testUser = User(id: '1', email: 'test@test.com', name: 'Test');
 
   test('should return User when login is successful', () async {
     // Arrange
@@ -583,105 +1186,320 @@ void main() {
 
     // Act
     final result = await usecase(LoginParams(
-      email: 'test@example.com',
+      email: 'test@test.com',
       password: 'password123',
     ));
 
     // Assert
     expect(result, Right(testUser));
+    verify(() => mockRepository.login(
+      email: 'test@test.com',
+      password: 'password123',
+    )).called(1);
+  });
+
+  test('should return Failure when login fails', () async {
+    // Arrange
+    when(() => mockRepository.login(
+      email: any(named: 'email'),
+      password: any(named: 'password'),
+    )).thenAnswer((_) async => Left(ServerFailure(message: 'Error')));
+
+    // Act
+    final result = await usecase(LoginParams(
+      email: 'test@test.com',
+      password: 'wrong',
+    ));
+
+    // Assert
+    expect(result, Left(ServerFailure(message: 'Error')));
   });
 }
 ```
 
-### Run Tests
+**BLoC Test:**
+
+```dart
+import 'package:bloc_test/bloc_test.dart';
+
+void main() {
+  late AuthBloc bloc;
+  late MockLoginUser mockLoginUser;
+
+  setUp(() {
+    mockLoginUser = MockLoginUser();
+    bloc = AuthBloc(loginUser: mockLoginUser);
+  });
+
+  blocTest<AuthBloc, AuthState>(
+    'emits [AuthLoading, AuthAuthenticated] when login succeeds',
+    build: () {
+      when(() => mockLoginUser(any()))
+          .thenAnswer((_) async => Right(testUser));
+      return bloc;
+    },
+    act: (bloc) => bloc.add(LoginRequested(
+      email: 'test@test.com',
+      password: 'password',
+    )),
+    expect: () => [
+      const AuthLoading(),
+      AuthAuthenticated(testUser),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits [AuthLoading, AuthError] when login fails',
+    build: () {
+      when(() => mockLoginUser(any()))
+          .thenAnswer((_) async => Left(ServerFailure(message: 'Error')));
+      return bloc;
+    },
+    act: (bloc) => bloc.add(LoginRequested(
+      email: 'test@test.com',
+      password: 'wrong',
+    )),
+    expect: () => [
+      const AuthLoading(),
+      const AuthError('Error'),
+    ],
+  );
+}
+```
+
+### Running Tests
 
 ```bash
-# All tests
+# Run all tests
 flutter test
 
-# With coverage
+# Run specific test file
+flutter test test/features/auth/domain/usecases/login_user_test.dart
+
+# Run with coverage
 flutter test --coverage
 
-# Specific test
-flutter test test/features/auth/domain/usecases/login_user_test.dart
+# Run with verbose output
+flutter test --reporter expanded
 ```
 
 ---
 
 ## Commands Reference
 
+### Development
+
 | Command | Description |
 |---------|-------------|
 | `flutter pub get` | Install dependencies |
-| `dart run build_runner build --delete-conflicting-outputs` | Generate code (once) |
-| `dart run build_runner watch --delete-conflicting-outputs` | Generate code (watch) |
-| `flutter run` | Run app |
-| `flutter test` | Run tests |
+| `flutter run` | Run app in debug mode |
+| `flutter run --release` | Run app in release mode |
+| `flutter run -d <device>` | Run on specific device |
+
+### Code Generation
+
+| Command | Description |
+|---------|-------------|
+| `dart run build_runner build --delete-conflicting-outputs` | Generate code once |
+| `dart run build_runner watch --delete-conflicting-outputs` | Generate code continuously |
+
+### Testing
+
+| Command | Description |
+|---------|-------------|
+| `flutter test` | Run all tests |
 | `flutter test --coverage` | Run tests with coverage |
-| `flutter analyze` | Analyze code |
-| `flutter clean` | Clean build |
+| `flutter test test/path/to/test.dart` | Run specific test |
+
+### Analysis
+
+| Command | Description |
+|---------|-------------|
+| `flutter analyze` | Analyze code for issues |
+| `dart format .` | Format all Dart files |
+| `flutter clean` | Clean build artifacts |
+
+### Build
+
+| Command | Description |
+|---------|-------------|
+| `flutter build apk` | Build Android APK |
+| `flutter build appbundle` | Build Android App Bundle |
+| `flutter build ios` | Build iOS |
+| `flutter build web` | Build Web |
 
 ---
 
-## Customization
+## Customization Guide
 
 ### Change App Name
 
-1. `pubspec.yaml` → `name: your_app_name`
-2. `lib/app.dart` → `title: 'Your App Name'`
-3. Android: `android/app/src/main/AndroidManifest.xml`
-4. iOS: `ios/Runner/Info.plist`
+1. **pubspec.yaml:**
+   ```yaml
+   name: your_app_name
+   ```
+
+2. **lib/app.dart:**
+   ```dart
+   MaterialApp(
+     title: 'Your App Name',
+     ...
+   )
+   ```
+
+3. **Android** (`android/app/src/main/AndroidManifest.xml`):
+   ```xml
+   <application android:label="Your App Name" ...>
+   ```
+
+4. **iOS** (`ios/Runner/Info.plist`):
+   ```xml
+   <key>CFBundleDisplayName</key>
+   <string>Your App Name</string>
+   ```
 
 ### Change API URL
 
 Edit `lib/core/constants/api_constants.dart`:
 
 ```dart
-static const String baseUrl = 'https://your-api.com';
+class ApiConstants {
+  static const String baseUrl = 'https://your-api.com/api/v1';
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
+}
 ```
 
-### Change Primary Color
+### Change Colors
 
-Edit `lib/core/theme/light/color_scheme_light.dart`:
+**Light theme:** `lib/core/theme/light/color_scheme_light.dart`
 
 ```dart
-final Color primary = const Color(0xFFYOURCOLOR);
+class ColorSchemeLight {
+  final Color primary = const Color(0xFF6200EE);      // Your primary color
+  final Color secondary = const Color(0xFF03DAC6);    // Your secondary color
+  final Color background = const Color(0xFFFFFFFF);
+  final Color surface = const Color(0xFFFAFAFA);
+  final Color error = const Color(0xFFB00020);
+  // ... more colors
+}
 ```
 
-### Add New Dependency
+**Dark theme:** `lib/core/theme/dark/color_scheme_dark.dart`
 
-1. Add to `pubspec.yaml`
-2. Run `flutter pub get`
-3. Register in `injection_container.dart` if needed
+### Add New Translation
+
+1. Create translation file: `assets/translations/xx.json`
+   ```json
+   {
+     "auth": {
+       "login": "Login",
+       "register": "Register"
+     },
+     "home": {
+       "welcome": "Welcome, {name}!"
+     }
+   }
+   ```
+
+2. Add to `lib/core/localization/supported_locales.dart`:
+   ```dart
+   enum SupportedLocale {
+     english(...),
+     turkish(...),
+     newLanguage(
+       locale: Locale('xx'),
+       languageCode: 'xx',
+       name: 'Language Name',
+       nativeName: 'Native Name',
+       flag: '🏳️',
+     ),
+   }
+   ```
+
+3. Add to `main.dart` supportedLocales
 
 ---
 
 ## FAQ
 
 **Q: Why Clean Architecture?**
-> Separation of concerns, testability, and scalability. Each layer has a single responsibility and can be modified independently.
+> It provides clear separation of concerns, making the code testable, maintainable, and scalable. Each layer can be modified independently without affecting others.
 
-**Q: Why BLoC over other state management?**
-> BLoC enforces unidirectional data flow, separates business logic from UI, and has excellent tooling (bloc_test, flutter_bloc).
+**Q: When should I use BLoC vs Cubit?**
+> Use **Cubit** for simple state (theme toggle, counter). Use **BLoC** for complex state with event-driven logic (authentication, forms with validation).
 
-**Q: When to use Cubit vs BLoC?**
-> Use Cubit for simple state (theme, locale). Use BLoC when you need event-driven architecture or complex state transitions.
+**Q: Why GetIt for dependency injection?**
+> Simple API, no code generation required, supports all registration types. For larger projects, consider Injectable for code generation.
 
-**Q: Why GetIt for DI?**
-> Simple API, no code generation, supports lazy singletons and factories. Alternative: Injectable for code generation.
+**Q: Why Freezed for models?**
+> Generates immutable data classes with `copyWith`, `==`, `hashCode`, `toString`, and JSON serialization. Reduces boilerplate significantly.
 
-**Q: Why Freezed?**
-> Immutable data classes with copyWith, JSON serialization, and union types. Reduces boilerplate significantly.
-
-**Q: How to add authentication guards?**
+**Q: How do I handle authentication guards?**
 > Add guards in `app_router.dart`:
 ```dart
-@override
-List<AutoRouteGuard> get guards => [AuthGuard()];
+AutoRoute(
+  page: HomeRoute.page,
+  guards: [AuthGuard()],
+)
 ```
+
+**Q: How do I add global error handling?**
+> Errors are already handled in `main.dart` using `runZonedGuarded`. Add custom logic there.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Code generation not working**
+
+```bash
+# Clean and regenerate
+flutter clean
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+```
+
+**2. "Could not find the correct Provider"**
+
+Make sure the BLoC is provided above the widget that uses it:
+
+```dart
+BlocProvider(
+  create: (_) => sl<AuthBloc>(),
+  child: LoginPage(),  // AuthBloc available here
+)
+```
+
+**3. Dependency not registered**
+
+Check `injection_container.dart` for:
+- Correct registration order
+- All dependencies registered
+- `initDependencies()` called in `main.dart`
+
+**4. Route not found**
+
+After adding new routes:
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+**5. Translation key not found**
+
+Check:
+- Key exists in all JSON files
+- Key path matches `LocaleKeys` constant
+- App restarted after adding new keys
 
 ---
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) file.
+
+---
+
+Made with ❤️ for Flutter developers
