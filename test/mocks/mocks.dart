@@ -1,6 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app_boilerplate/core/cache/cache_manager.dart';
 import 'package:flutter_app_boilerplate/core/network/dio_client.dart';
+import 'package:flutter_app_boilerplate/core/localization/localization_manager.dart';
 import 'package:flutter_app_boilerplate/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:flutter_app_boilerplate/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flutter_app_boilerplate/features/auth/domain/repositories/auth_repository.dart';
@@ -10,11 +11,14 @@ import 'package:flutter_app_boilerplate/features/auth/domain/usecases/logout_use
 import 'package:flutter_app_boilerplate/features/auth/domain/usecases/register_user.dart';
 import 'package:flutter_app_boilerplate/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_app_boilerplate/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:flutter_app_boilerplate/features/settings/presentation/bloc/locale_cubit.dart';
 
 // Core Mocks
 class MockCacheManager extends Mock implements CacheManager {}
 
 class MockDioClient extends Mock implements DioClient {}
+
+class MockLocalizationManager extends Mock implements LocalizationManager {}
 
 // Auth Feature Mocks
 class MockAuthRepository extends Mock implements AuthRepository {}
@@ -33,7 +37,10 @@ class MockGetCurrentUser extends Mock implements GetCurrentUser {}
 
 class MockAuthBloc extends Mock implements AuthBloc {}
 
+// Settings Feature Mocks
 class MockThemeCubit extends Mock implements ThemeCubit {}
+
+class MockLocaleCubit extends Mock implements LocaleCubit {}
 
 // Register fallback values for mocktail
 void registerFallbackValues() {
