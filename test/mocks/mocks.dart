@@ -2,6 +2,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app_boilerplate/core/cache/cache_manager.dart';
 import 'package:flutter_app_boilerplate/core/network/dio_client.dart';
 import 'package:flutter_app_boilerplate/core/localization/localization_manager.dart';
+import 'package:flutter_app_boilerplate/core/database/hive_manager.dart';
+import 'package:flutter_app_boilerplate/core/offline/connectivity_service.dart';
+import 'package:flutter_app_boilerplate/core/offline/sync_queue.dart';
+import 'package:flutter_app_boilerplate/core/offline/offline_manager.dart';
+import 'package:flutter_app_boilerplate/core/offline/connectivity_cubit.dart';
 import 'package:flutter_app_boilerplate/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:flutter_app_boilerplate/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flutter_app_boilerplate/features/auth/domain/repositories/auth_repository.dart';
@@ -19,6 +24,17 @@ class MockCacheManager extends Mock implements CacheManager {}
 class MockDioClient extends Mock implements DioClient {}
 
 class MockLocalizationManager extends Mock implements LocalizationManager {}
+
+// Offline-First Mocks
+class MockHiveManager extends Mock implements HiveManager {}
+
+class MockConnectivityService extends Mock implements ConnectivityService {}
+
+class MockSyncQueue extends Mock implements SyncQueue {}
+
+class MockOfflineManager extends Mock implements OfflineManager {}
+
+class MockConnectivityCubit extends Mock implements ConnectivityCubit {}
 
 // Auth Feature Mocks
 class MockAuthRepository extends Mock implements AuthRepository {}
