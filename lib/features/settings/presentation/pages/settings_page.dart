@@ -1,12 +1,16 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../config/routes/app_router.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/localization/locale_keys.dart';
+import '../../../../core/localization/supported_locales.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../bloc/locale_cubit.dart';
 import '../bloc/theme_cubit.dart';
 
 @RoutePage()
@@ -17,11 +21,11 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(LocaleKeys.settingsTitle.tr()),
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is Unauthenticated) {
+          if (state is AuthUnauthenticated) {
             context.router.replaceAll([const LoginRoute()]);
           }
         },
@@ -29,7 +33,7 @@ class SettingsPage extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             // Appearance Section
-            _buildSectionHeader(context, 'Appearance'),
+            _buildSectionHeader(context, LocaleKeys.settingsTheme.tr()),
             Card(
               child: Column(
                 children: [
@@ -39,8 +43,8 @@ class SettingsPage extends StatelessWidget {
                         leading: Icon(
                           state.isDark ? Icons.dark_mode : Icons.light_mode,
                         ),
-                        title: const Text('Dark Mode'),
-                        subtitle: Text(state.themeMode.name.toUpperCase()),
+                        title: Text(LocaleKeys.settingsTheme.tr()),
+                        subtitle: Text(_getThemeModeName(context, state.themeMode)),
                         trailing: Switch(
                           value: state.isDark,
                           onChanged: (_) {
@@ -52,13 +56,15 @@ class SettingsPage extends StatelessWidget {
                     },
                   ),
                   const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: const Text('Language'),
-                    subtitle: const Text('English'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO: Navigate to language settings
+                  BlocBuilder<LocaleCubit, LocaleState>(
+                    builder: (context, state) {
+                      return ListTile(
+                        leading: const Icon(Icons.language),
+                        title: Text(LocaleKeys.settingsLanguage.tr()),
+                        subtitle: Text(state.currentLocale.displayName),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _showLanguageDialog(context),
+                      );
                     },
                   ),
                 ],
@@ -91,7 +97,7 @@ class SettingsPage extends StatelessWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.notifications),
-                    title: const Text('Notifications'),
+                    title: Text(LocaleKeys.settingsNotifications.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       // TODO: Navigate to notification settings
@@ -103,13 +109,13 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
 
             // About Section
-            _buildSectionHeader(context, 'About'),
+            _buildSectionHeader(context, LocaleKeys.settingsAbout.tr()),
             Card(
               child: Column(
                 children: [
                   ListTile(
                     leading: const Icon(Icons.info),
-                    title: const Text('About App'),
+                    title: Text(LocaleKeys.settingsAbout.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       // TODO: Navigate to about
@@ -118,7 +124,7 @@ class SettingsPage extends StatelessWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.privacy_tip),
-                    title: const Text('Privacy Policy'),
+                    title: Text(LocaleKeys.settingsPrivacy.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       // TODO: Open privacy policy
@@ -127,7 +133,7 @@ class SettingsPage extends StatelessWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.description),
-                    title: const Text('Terms of Service'),
+                    title: Text(LocaleKeys.settingsTerms.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       // TODO: Open terms of service
@@ -146,7 +152,7 @@ class SettingsPage extends StatelessWidget {
                   color: context.colorScheme.error,
                 ),
                 title: Text(
-                  'Logout',
+                  LocaleKeys.authLogout.tr(),
                   style: TextStyle(color: context.colorScheme.error),
                 ),
                 onTap: () => _showLogoutDialog(context),
@@ -157,7 +163,7 @@ class SettingsPage extends StatelessWidget {
             // Version
             Center(
               child: Text(
-                'Version 1.0.0',
+                '${LocaleKeys.settingsVersion.tr()} 1.0.0',
                 style: context.textTheme.bodySmall,
               ),
             ),
@@ -180,45 +186,56 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  String _getThemeModeName(BuildContext context, ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return LocaleKeys.settingsSystemTheme.tr();
+      case ThemeMode.light:
+        return LocaleKeys.settingsLightTheme.tr();
+      case ThemeMode.dark:
+        return LocaleKeys.settingsDarkTheme.tr();
+    }
+  }
+
   void _showThemeDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Choose Theme'),
+          title: Text(LocaleKeys.settingsTheme.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<ThemeMode>(
-                title: const Text('System'),
+                title: Text(LocaleKeys.settingsSystemTheme.tr()),
                 value: ThemeMode.system,
                 groupValue: context.read<ThemeCubit>().state.themeMode,
                 onChanged: (value) {
                   if (value != null) {
                     context.read<ThemeCubit>().setTheme(value);
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                   }
                 },
               ),
               RadioListTile<ThemeMode>(
-                title: const Text('Light'),
+                title: Text(LocaleKeys.settingsLightTheme.tr()),
                 value: ThemeMode.light,
                 groupValue: context.read<ThemeCubit>().state.themeMode,
                 onChanged: (value) {
                   if (value != null) {
                     context.read<ThemeCubit>().setTheme(value);
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                   }
                 },
               ),
               RadioListTile<ThemeMode>(
-                title: const Text('Dark'),
+                title: Text(LocaleKeys.settingsDarkTheme.tr()),
                 value: ThemeMode.dark,
                 groupValue: context.read<ThemeCubit>().state.themeMode,
                 onChanged: (value) {
                   if (value != null) {
                     context.read<ThemeCubit>().setTheme(value);
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                   }
                 },
               ),
@@ -229,25 +246,55 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  void _showLanguageDialog(BuildContext context) {
+    final localeCubit = context.read<LocaleCubit>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(LocaleKeys.settingsLanguage.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: SupportedLocale.values.map((locale) {
+              return RadioListTile<SupportedLocale>(
+                title: Text(locale.displayName),
+                subtitle: Text(locale.name),
+                value: locale,
+                groupValue: localeCubit.state.currentLocale,
+                onChanged: (value) {
+                  if (value != null) {
+                    localeCubit.setLocale(context, value);
+                    Navigator.pop(dialogContext);
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Logout'),
+          title: Text(LocaleKeys.authLogout.tr()),
           content: const Text('Are you sure you want to logout?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(LocaleKeys.commonCancel.tr()),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                context.read<AuthBloc>().add(const LogoutEvent());
+                Navigator.pop(dialogContext);
+                context.read<AuthBloc>().add(const LogoutRequested());
               },
               child: Text(
-                'Logout',
+                LocaleKeys.authLogout.tr(),
                 style: TextStyle(color: context.colorScheme.error),
               ),
             ),

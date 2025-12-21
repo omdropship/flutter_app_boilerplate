@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'core/cache/cache_manager.dart';
 import 'core/network/dio_client.dart';
 import 'core/navigation/navigation_manager.dart';
+import 'core/localization/localization_manager.dart';
 import 'config/routes/app_router.dart';
 
 // Features
@@ -15,6 +16,7 @@ import 'features/auth/domain/usecases/logout_user.dart';
 import 'features/auth/domain/usecases/register_user.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/settings/presentation/bloc/theme_cubit.dart';
+import 'features/settings/presentation/bloc/locale_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -25,6 +27,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<CacheManager>(() => CacheManager.instance);
   sl.registerLazySingleton<DioClient>(() => DioClient.instance);
   sl.registerLazySingleton<NavigationManager>(() => NavigationManager.instance);
+  sl.registerLazySingleton<LocalizationManager>(() => LocalizationManager.instance);
   sl.registerLazySingleton<AppRouter>(() => AppRouter());
 
   //==============================
@@ -66,6 +69,7 @@ Future<void> _initAuthFeature() async {
 }
 
 Future<void> _initSettingsFeature() async {
-  // Cubit - Factory
+  // Cubit - Factory (new instance each time, or LazySingleton if app-wide)
   sl.registerFactory<ThemeCubit>(() => ThemeCubit(sl()));
+  sl.registerFactory<LocaleCubit>(() => LocaleCubit(sl()));
 }

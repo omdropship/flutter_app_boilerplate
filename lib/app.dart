@@ -5,6 +5,7 @@ import 'config/routes/app_router.dart';
 import 'core/theme/light/light_theme.dart';
 import 'core/theme/dark/dark_theme.dart';
 import 'features/settings/presentation/bloc/theme_cubit.dart';
+import 'features/settings/presentation/bloc/locale_cubit.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'injection_container.dart';
 
@@ -16,6 +17,7 @@ class App extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeCubit>(create: (_) => sl<ThemeCubit>()),
+        BlocProvider<LocaleCubit>(create: (_) => sl<LocaleCubit>()),
         BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
         // Add more global BLoCs here
       ],
