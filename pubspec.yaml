@@ -1,0 +1,70 @@
+name: flutter_app_boilerplate
+description: A production-ready Flutter application with Clean Architecture
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_bloc: ^9.1.1
+  bloc: ^9.0.0
+
+  # Dependency Injection
+  get_it: ^8.0.3
+
+  # Routing
+  auto_route: ^9.4.0
+
+  # Network
+  dio: ^5.8.0
+
+  # Cache
+  shared_preferences: ^2.5.3
+
+  # Functional Programming (Either pattern)
+  dartz: ^0.10.1
+
+  # Code Generation
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
+  # Localization
+  easy_localization: ^3.0.7+1
+
+  # UI
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  flutter_svg: ^2.0.17
+
+  # Utils
+  equatable: ^2.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generation
+  build_runner: ^2.4.15
+  freezed: ^3.0.0
+  json_serializable: ^6.9.4
+  auto_route_generator: ^9.0.0
+
+  # Testing
+  mocktail: ^1.0.4
+  bloc_test: ^10.0.0
+
+  # Linting
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/translations/
