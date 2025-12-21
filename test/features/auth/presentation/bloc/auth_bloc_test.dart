@@ -93,7 +93,7 @@ void main() {
 
   group('LogoutEvent', () {
     blocTest<AuthBloc, AuthState>(
-      'emits [AuthLoading, AuthInitial] when logout succeeds',
+      'emits [AuthLoading, Unauthenticated] when logout succeeds',
       build: () {
         when(() => mockLogoutUser(any()))
             .thenAnswer((_) async => const Right(unit));
@@ -102,7 +102,7 @@ void main() {
       act: (bloc) => bloc.add(const LogoutEvent()),
       expect: () => [
         const AuthLoading(),
-        const AuthInitial(),
+        const Unauthenticated(),
       ],
     );
   });
