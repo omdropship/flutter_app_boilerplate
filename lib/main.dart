@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'app.dart';
+import 'injection_container.dart' as di;
+import 'core/cache/cache_manager.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // System UI
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+  );
+
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Initialize dependencies
+  await di.initDependencies();
+  await CacheManager.instance.init();
+  await EasyLocalization.ensureInitialized();
+
+  // Error handling
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    // TODO: Log to crash reporting service (Firebase Crashlytics, Sentry, etc.)
+  };
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('tr')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: const App(),
+    ),
+  );
+}
