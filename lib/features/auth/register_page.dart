@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 
+@RoutePage()
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -18,12 +20,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
-  String? _selectedGender = 'male';
+  String _selectedGender = 'male';
 
   // Dropdown tanggal lahir
   int? _selectedDay = 1;
   int? _selectedMonth = 1;
   int? _selectedYear = DateTime.now().year - 13;
+
   String? _usernameMessage;
   bool _isUsernameAvailable = false;
   bool _isCheckingUsername = false;
@@ -81,8 +84,9 @@ class _RegisterPageState extends State<RegisterPage> {
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        gender: _selectedGender ?? 'male',
-        birthdate: '${_selectedDay.toString().padLeft(2, '0')}/${_selectedMonth.toString().padLeft(2, '0')}/$_selectedYear',
+        gender: _selectedGender,
+        birthdate:
+            '${_selectedDay.toString().padLeft(2, '0')}/${_selectedMonth.toString().padLeft(2, '0')}/$_selectedYear',
       );
 
       if (mounted) {
@@ -93,7 +97,8 @@ class _RegisterPageState extends State<RegisterPage> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.of(context).pushReplacementNamed('/login');
+        // Auto‑login sudah dilakukan di AuthService.register, langsung ke Nearby
+        context.router.replaceNamed('/nearby');
       }
     } catch (e) {
       if (mounted) _showError(e.toString());
@@ -166,16 +171,23 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Username
+                // Username dengan cek ketersediaan
                 TextFormField(
                   controller: _usernameController,
                   decoration: InputDecoration(
                     labelText: 'Username',
                     prefixIcon: const Icon(Icons.alternate_email),
                     suffixIcon: _isCheckingUsername
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : _usernameMessage != null
-                            ? Icon(_isUsernameAvailable ? Icons.check_circle : Icons.cancel, color: _isUsernameAvailable ? Colors.green : Colors.red)
+                            ? Icon(
+                                _isUsernameAvailable ? Icons.check_circle : Icons.cancel,
+                                color: _isUsernameAvailable ? Colors.green : Colors.red,
+                              )
                             : null,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -224,12 +236,15 @@ class _RegisterPageState extends State<RegisterPage> {
                     DropdownMenuItem(value: 'male', child: Text('Laki-laki')),
                     DropdownMenuItem(value: 'female', child: Text('Perempuan')),
                   ],
-                  onChanged: _isLoading ? null : (v) => setState(() => _selectedGender = v),
+                  onChanged: _isLoading ? null : (v) => setState(() => _selectedGender = v!),
                 ),
                 const SizedBox(height: 16),
 
                 // Tanggal Lahir
-                Text('Tanggal Lahir', style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                Text(
+                  'Tanggal Lahir',
+                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -240,7 +255,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           labelText: 'Tgl',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        items: List.generate(31, (i) => i + 1).map((d) => DropdownMenuItem(value: d, child: Text('$d'))).toList(),
+                        items: List.generate(31, (i) => i + 1)
+                            .map((d) => DropdownMenuItem(value: d, child: Text('$d')))
+                            .toList(),
                         onChanged: _isLoading ? null : (v) => setState(() => _selectedDay = v),
                       ),
                     ),
@@ -252,8 +269,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           labelText: 'Bulan',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        items: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-                            .asMap().entries.map((e) => DropdownMenuItem(value: e.key + 1, child: Text(e.value))).toList(),
+                        items: [
+                          'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+                          'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                        ].asMap().entries.map((e) =>
+                            DropdownMenuItem(value: e.key + 1, child: Text(e.value))).toList(),
                         onChanged: _isLoading ? null : (v) => setState(() => _selectedMonth = v),
                       ),
                     ),
@@ -265,7 +285,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           labelText: 'Tahun',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        items: List.generate(80, (i) => DateTime.now().year - 13 - i).map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+                        items: List.generate(80, (i) => DateTime.now().year - 13 - i)
+                            .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                            .toList(),
                         onChanged: _isLoading ? null : (v) => setState(() => _selectedYear = v),
                       ),
                     ),
@@ -281,7 +303,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     labelText: 'Kata Sandi (min. 6 karakter)',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -301,8 +327,18 @@ class _RegisterPageState extends State<RegisterPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Daftar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Daftar',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
                 const SizedBox(height: 20),
 
@@ -310,10 +346,23 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Sudah punya akun? ', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Sudah punya akun? ',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     GestureDetector(
-                      onTap: _isLoading ? null : () => Navigator.of(context).pushReplacementNamed('/login'),
-                      child: Text('Masuk', style: textTheme.bodyMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+                      onTap: _isLoading
+                          ? null
+                          : () => context.router.pushNamed('/login'),
+                      child: Text(
+                        'Masuk',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
