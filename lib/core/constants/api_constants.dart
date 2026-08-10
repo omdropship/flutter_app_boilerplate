@@ -1,13 +1,11 @@
 abstract class ApiConstants {
-  static const String baseUrl = 'https://api.example.com';
+  // 🔧 Ganti ke server produksi ChatTeman
+  static const String baseUrl = 'https://yayanheeh.my.id/chatapi/v1';
 
-  // Endpoints
+  // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String logout = '/auth/logout';
-  static const String refreshToken = '/auth/refresh';
-  static const String user = '/user';
-  static const String users = '/users';
+  static const String checkUsername = '/auth/check-username';
 
   // Timeouts
   static const Duration connectTimeout = Duration(seconds: 30);
