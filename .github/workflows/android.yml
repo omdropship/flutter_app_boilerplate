@@ -1,39 +1,27 @@
-name: Build ChatTeman APK - Diagnostic Mode
+name: Build ChatTeman APK
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build ChatTeman APK
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
 
-      # ============================================================
-      # 1. CHECKOUT
-      # ============================================================
-      - name: Checkout source
+      # ==========================================================
+      # 1. Ambil source code
+      # ==========================================================
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-
-      # ============================================================
-      # 2. JAVA 17
-      # ============================================================
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-
-      # ============================================================
-      # 3. FLUTTER 3.32.8 / DART 3.8.1
-      # ============================================================
+      # ==========================================================
+      # 2. Install Flutter
+      # ==========================================================
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -41,366 +29,147 @@ jobs:
           channel: stable
           cache: true
 
-
-      # ============================================================
-      # 4. ENVIRONMENT CHECK
-      # ============================================================
-      - name: Diagnostic - Environment
+      # ==========================================================
+      # 3. Cek Flutter
+      # ==========================================================
+      - name: Flutter Doctor
         run: |
-          echo "============================================================"
-          echo "CHAT TEMAN - BUILD DIAGNOSTIC"
-          echo "============================================================"
-
-          echo ""
-          echo "Flutter:"
+          echo "========================================"
+          echo "FLUTTER VERSION"
+          echo "========================================"
           flutter --version
 
           echo ""
-          echo "Dart:"
+          echo "========================================"
+          echo "DART VERSION"
+          echo "========================================"
           dart --version
 
           echo ""
-          echo "Java:"
-          java -version
-
-          echo ""
-          echo "Flutter Doctor:"
+          echo "========================================"
+          echo "FLUTTER DOCTOR"
+          echo "========================================"
           flutter doctor -v
 
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 5. PUBSPEC CHECK
-      # ============================================================
-      - name: Diagnostic - pubspec.yaml
+      # ==========================================================
+      # 4. Cek struktur project
+      # ==========================================================
+      - name: Check Project
         run: |
-          echo "============================================================"
-          echo "PUBSPEC.YAML"
-          echo "============================================================"
+          echo "========================================"
+          echo "PROJECT STRUCTURE"
+          echo "========================================"
 
-          if [ ! -f pubspec.yaml ]; then
-            echo "::error::pubspec.yaml tidak ditemukan"
-            exit 1
-          fi
+          pwd
 
+          echo ""
+          echo "FILES:"
+          find . -maxdepth 2 -type f | sort | head -200
+
+          echo ""
+          echo "PUBSPEC:"
           cat pubspec.yaml
 
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 6. FLUTTER PUB GET
-      #
-      # Jika gagal:
-      # - Tidak mencetak seluruh log verbose
-      # - Menampilkan bagian "Because..."
-      # - Menampilkan version solving
-      # - Menampilkan error dependency
-      # - Menampilkan 120 baris terakhir
-      # ============================================================
-      - name: Install dependencies - Diagnostic
-        id: pub_get
-        shell: bash
+      # ==========================================================
+      # 5. Install dependency
+      # ==========================================================
+      - name: Flutter Pub Get
         run: |
           set +e
 
-          echo "============================================================"
-          echo "STEP: FLUTTER PUB GET"
-          echo "============================================================"
+          echo "========================================"
+          echo "FLUTTER PUB GET"
+          echo "========================================"
 
-          echo ""
-          echo "Dart version:"
-          dart --version
-
-          echo ""
-          echo "Menjalankan flutter pub get..."
-          echo "Log lengkap disimpan ke pub_get.log"
-          echo ""
-
-          flutter pub get -v > pub_get.log 2>&1
+          flutter pub get
 
           EXIT_CODE=$?
 
-          if [ "$EXIT_CODE" -eq 0 ]; then
+          echo ""
+          echo "PUB GET EXIT CODE: $EXIT_CODE"
+
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo ""
+            echo "========================================"
+            echo "PUB GET GAGAL"
+            echo "========================================"
 
             echo ""
-            echo "============================================================"
-            echo "PUB GET BERHASIL"
-            echo "============================================================"
+            echo "PUBSPEC:"
+            cat pubspec.yaml
 
-            exit 0
+            echo ""
+            echo "FLUTTER VERSION:"
+            flutter --version
+
+            exit "$EXIT_CODE"
           fi
 
           echo ""
-          echo "::error::FLUTTER PUB GET GAGAL"
+          echo "PUB GET BERHASIL"
 
-          echo ""
-          echo "============================================================"
-          echo "AKAR MASALAH DEPENDENCY"
-          echo "============================================================"
-
-          grep -i -A 25 -B 8 \
-            -E "Because|version solving failed|Unable to resolve" \
-            pub_get.log || true
-
-          echo ""
-          echo "============================================================"
-          echo "ERROR DEPENDENCY TERDETEKSI"
-          echo "============================================================"
-
-          grep -i -E \
-            "error|failed|conflict|requires|depends on|incompatible|version solving|SDK constraint|not compatible" \
-            pub_get.log | tail -120 || true
-
-          echo ""
-          echo "============================================================"
-          echo "VERSI SDK"
-          echo "============================================================"
-
-          flutter --version
-          dart --version
-
-          echo ""
-          echo "============================================================"
-          echo "PUBSPEC YANG DIGUNAKAN"
-          echo "============================================================"
-
-          cat pubspec.yaml
-
-          echo ""
-          echo "============================================================"
-          echo "120 BARIS TERAKHIR LOG PUB GET"
-          echo "============================================================"
-
-          tail -120 pub_get.log
-
-          exit "$EXIT_CODE"
-
-
-      # ============================================================
-      # 7. RESOLVED DEPENDENCIES
-      # ============================================================
-      - name: Diagnostic - Resolved dependencies
-        if: success()
+      # ==========================================================
+      # 6. Analisa Dart
+      # ==========================================================
+      - name: Analyze
         run: |
-          echo "============================================================"
-          echo "RESOLVED DEPENDENCIES"
-          echo "============================================================"
+          echo "========================================"
+          echo "DART ANALYZE"
+          echo "========================================"
 
-          flutter pub deps --style=compact
+          dart analyze
 
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 8. DEPENDENCY OUTDATED
-      #
-      # Informasi saja.
-      # Tidak membuat build gagal.
-      # ============================================================
-      - name: Diagnostic - Dependency information
-        if: success()
-        continue-on-error: true
-        run: |
-          echo "============================================================"
-          echo "DEPENDENCY INFORMATION"
-          echo "============================================================"
-
-          flutter pub outdated || true
-
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 9. BUILD RUNNER
-      # ============================================================
-      - name: Generate code - Diagnostic
-        id: build_runner
-        shell: bash
+      # ==========================================================
+      # 7. Build APK
+      # ==========================================================
+      - name: Build APK
         run: |
           set +e
 
-          echo "============================================================"
-          echo "STEP: BUILD RUNNER"
-          echo "============================================================"
+          echo "========================================"
+          echo "BUILD APK RELEASE"
+          echo "========================================"
 
-          echo ""
-          echo "Menjalankan build_runner..."
-          echo "Log lengkap disimpan ke build_runner.log"
-          echo ""
-
-          dart run build_runner build \
-            --delete-conflicting-outputs \
-            -v > build_runner.log 2>&1
+          flutter build apk --release
 
           EXIT_CODE=$?
 
-          if [ "$EXIT_CODE" -eq 0 ]; then
+          echo ""
+          echo "BUILD EXIT CODE: $EXIT_CODE"
+
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo ""
+            echo "========================================"
+            echo "BUILD APK GAGAL"
+            echo "========================================"
 
             echo ""
-            echo "============================================================"
-            echo "BUILD RUNNER BERHASIL"
-            echo "============================================================"
-
-            exit 0
-          fi
-
-          echo ""
-          echo "::error::BUILD RUNNER GAGAL"
-
-          echo ""
-          echo "============================================================"
-          echo "AKAR MASALAH BUILD RUNNER"
-          echo "============================================================"
-
-          grep -i -A 20 -B 8 \
-            -E "error|exception|failed|failure|invalid|conflict|not found|unsupported|requires|cannot|could not" \
-            build_runner.log | tail -200 || true
-
-          echo ""
-          echo "============================================================"
-          echo "200 BARIS TERAKHIR BUILD RUNNER"
-          echo "============================================================"
-
-          tail -200 build_runner.log
-
-          exit "$EXIT_CODE"
-
-
-      # ============================================================
-      # 10. GENERATED FILE CHECK
-      # ============================================================
-      - name: Diagnostic - Generated files
-        if: success()
-        run: |
-          echo "============================================================"
-          echo "GENERATED FILES"
-          echo "============================================================"
-
-          find lib -type f \
-            \( -name "*.g.dart" -o -name "*.freezed.dart" \) \
-            -print 2>/dev/null | sort || true
-
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 11. BUILD APK RELEASE
-      # ============================================================
-      - name: Build APK - Diagnostic
-        id: build_apk
-        shell: bash
-        run: |
-          set +e
-
-          echo "============================================================"
-          echo "STEP: FLUTTER BUILD APK RELEASE"
-          echo "============================================================"
-
-          echo ""
-          echo "Menjalankan flutter build apk --release..."
-          echo "Log lengkap disimpan ke build_apk.log"
-          echo ""
-
-          flutter build apk --release -v > build_apk.log 2>&1
-
-          EXIT_CODE=$?
-
-          if [ "$EXIT_CODE" -eq 0 ]; then
+            echo "FLUTTER DOCTOR:"
+            flutter doctor -v
 
             echo ""
-            echo "============================================================"
-            echo "BUILD APK BERHASIL"
-            echo "============================================================"
+            echo "FLUTTER VERSION:"
+            flutter --version
 
-            ls -lh build/app/outputs/flutter-apk/ || true
-
-            exit 0
+            exit "$EXIT_CODE"
           fi
 
           echo ""
-          echo "::error::BUILD APK GAGAL"
+          echo "========================================"
+          echo "BUILD APK BERHASIL"
+          echo "========================================"
 
-          echo ""
-          echo "============================================================"
-          echo "AKAR MASALAH BUILD APK"
-          echo "============================================================"
+          find build/app/outputs/flutter-apk \
+            -type f \
+            -name "*.apk" \
+            -print
 
-          grep -i -A 15 -B 8 \
-            -E "error|exception|failure|failed|compile|gradle|kotlin|java|android|resource|manifest|unsupported|deprecated" \
-            build_apk.log | tail -250 || true
-
-          echo ""
-          echo "============================================================"
-          echo "250 BARIS TERAKHIR BUILD APK"
-          echo "============================================================"
-
-          tail -250 build_apk.log
-
-          exit "$EXIT_CODE"
-
-
-      # ============================================================
-      # 12. APK RESULT
-      # ============================================================
-      - name: Diagnostic - APK result
-        if: success()
-        run: |
-          echo "============================================================"
-          echo "HASIL APK"
-          echo "============================================================"
-
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-
-          if [ ! -f "$APK" ]; then
-            echo "::error::app-release.apk tidak ditemukan"
-            exit 1
-          fi
-
-          echo ""
-          echo "APK BERHASIL DIBUAT"
-          echo ""
-
-          ls -lh "$APK"
-
-          echo ""
-          echo "SHA256:"
-          sha256sum "$APK"
-
-          echo ""
-          echo "============================================================"
-
-
-      # ============================================================
-      # 13. UPLOAD APK
-      # ============================================================
-      - name: Upload APK artifact
-        if: success()
+      # ==========================================================
+      # 8. Upload APK ke GitHub
+      # ==========================================================
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: chatteman-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: ChatTeman-APK
+          path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
-
-
-      # ============================================================
-      # 14. UPLOAD DIAGNOSTIC LOGS
-      #
-      # Jika build gagal, semua log disimpan.
-      # ============================================================
-      - name: Upload diagnostic logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: chatteman-diagnostic-logs
-          path: |
-            pub_get.log
-            build_runner.log
-            build_apk.log
-          if-no-files-found: ignore
