@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 
+@RoutePage()
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -12,7 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService(); // 🔧 Ganti dengan dependency injection jika ada
+  final _authService = AuthService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -36,16 +38,13 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/nearby');
+        // Navigasi ke Nearby setelah login (gunakan AutoRoute)
+        context.router.replaceNamed('/nearby');
       }
     } catch (e) {
-      if (mounted) {
-        _showError(e.toString());
-      }
+      if (mounted) _showError(e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -87,7 +86,6 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Icon
                   Icon(Icons.favorite, size: 48, color: colorScheme.primary),
                   const SizedBox(height: 12),
                   Text(
@@ -114,9 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: InputDecoration(
                       labelText: 'Username / Email',
                       prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.text,
@@ -141,9 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     textInputAction: TextInputAction.done,
                     enabled: !_isLoading,
@@ -158,9 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _isLoading ? null : _handleLogin,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -191,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                       GestureDetector(
                         onTap: _isLoading
                             ? null
-                            : () => Navigator.of(context).pushReplacementNamed('/register'),
+                            : () => context.router.pushNamed('/register'),
                         child: Text(
                           'Daftar',
                           style: textTheme.bodyMedium?.copyWith(
