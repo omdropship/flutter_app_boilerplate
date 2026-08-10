@@ -1,7 +1,11 @@
 name: Build ChatTeman APK
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:   # Bisa dijalankan manual dari tab Actions
 
 jobs:
   build:
@@ -9,43 +13,34 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.24.0'    # Sesuaikan dengan versi Flutter Anda
+          channel: 'stable'
           cache: true
 
-      - name: Check Flutter
+      - name: Check Flutter version
         run: flutter --version
-
-      - name: Create Android project
-        run: |
-          flutter create \
-            --platforms=android \
-            --org com.chatteman \
-            --project-name chatteman \
-            .
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate code
-        run: |
-          dart run build_runner build \
-            --delete-conflicting-outputs
+      - name: Generate code (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Build APK
+      - name: Build APK release
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: chatteman-apk
