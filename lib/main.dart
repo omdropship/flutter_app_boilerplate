@@ -1,42 +1,70 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import 'app.dart';
-import 'core/cache/cache_manager.dart';
-import 'injection_container.dart' as di;
+void main() {
+  runApp(const ChatTemanApp());
+}
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+class ChatTemanApp extends StatelessWidget {
+  const ChatTemanApp({super.key});
 
-  // System UI
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
-  );
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'ChatTeman',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
 
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
-  // Initialize dependencies
-  await di.initDependencies();
-  await CacheManager.instance.init();
-  await EasyLocalization.ensureInitialized();
-
-  // Error handling
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    // TODO: Log to crash reporting service (Firebase Crashlytics, Sentry, etc.)
-  };
-
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('tr')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en'),
-      child: const App(),
-    ),
-  );
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ChatTeman'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.chat_bubble,
+              size: 80,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'ChatTeman',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Aplikasi berhasil dijalankan',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 30),
+            FilledButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('ChatTeman siap digunakan'),
+                  ),
+                );
+              },
+              child: const Text('Tes Aplikasi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
