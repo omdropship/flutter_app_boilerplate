@@ -12,6 +12,7 @@ class MainNavigationPage extends StatelessWidget {
     return AutoTabsScaffold(
       routes: const [
         HomeRoute(),
+        NearbyRoute(),   // 🆕 Radar Terdekat
         SettingsRoute(),
       ],
       bottomNavigationBuilder: (_, tabsRouter) {
@@ -23,6 +24,11 @@ class MainNavigationPage extends StatelessWidget {
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home),
               label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.radar_outlined),
+              selectedIcon: Icon(Icons.radar),
+              label: 'Radar',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),
