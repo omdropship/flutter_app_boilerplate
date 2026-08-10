@@ -118,5 +118,4 @@ linter:
     - void_checks
 
     # Pub rules
-    - depend_on_referenced_packages
     - sort_pub_dependencies
