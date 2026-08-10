@@ -8,7 +8,7 @@ import '../../features/main_navigation/presentation/pages/main_navigation_page.d
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
-
+import '../../features/nearby/nearby_page.dart'; 
 part 'app_router.gr.dart';
 
 @AutoRouterConfig(replaceInRouteName: 'Page,Route')
