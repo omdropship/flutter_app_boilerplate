@@ -5,7 +5,7 @@ class AuthResponse {
   AuthResponse({required this.token, required this.user});
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    // Ekstrak token fleksibel (seperti di index.html)
+    // Ekstraksi token fleksibel (seperti di index.html)
     String? token = json['token'] ?? json['access_token'];
     Map<String, dynamic>? userJson;
 
